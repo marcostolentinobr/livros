@@ -73,7 +73,7 @@ class RelatorioPDF
         $autorAtual = '';
         $primeiroAutor = true;
 
-        // Itera sobre os dados, agrupando por autor
+        // Processa cada registro agrupando por autor
         foreach ($dados as $row) {
             // Quando muda o autor, adiciona cabeçalho do grupo
             if ($row['NomeAutor'] !== $autorAtual) {

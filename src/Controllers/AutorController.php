@@ -2,35 +2,19 @@
 
 namespace App\Controllers;
 
-/**
- * Controller para gerenciar Autores
- * Herda funcionalidades CRUD básicas do BaseController
- */
+/** Controller para gerenciar autores */
 class AutorController extends BaseController
 {
-    /**
-     * Nome plural da entidade
-     * 
-     * @var string
-     */
     protected string $pluralName = 'autores';
 
-    /**
-     * Prepara e valida os dados recebidos do formulário
-     * 
-     * @return array Dados validados e formatados para o banco de dados
-     * @throws \RuntimeException Se o nome estiver vazio
-     */
+    /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
         $nome = trim($_POST['nome'] ?? '');
-        
+        // Valida nome obrigatório
         if (empty($nome)) {
             throw new \RuntimeException("O nome é obrigatório.", 400);
         }
-        
-        return [
-            'Nome' => $nome
-        ];
+        return ['Nome' => $nome];
     }
 }

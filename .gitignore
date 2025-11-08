@@ -1,26 +1,8 @@
-# ============================================
-# ARQUIVOS IGNORADOS PELO GIT
-# ============================================
-# Lista de arquivos/pastas que não devem ser versionados
-
-# Dependências do Composer
 /vendor/
-
-# Dependências do Node.js (se usar npm/yarn)
 /node_modules/
-
-# Arquivo de configuração local (contém senhas)
 .env
-
-# Logs de erro
 *.log
-
-# IDEs
-.idea/        # PhpStorm
-.vscode/      # Visual Studio Code
-
-# Sistema operacional
-.DS_Store     # macOS
-
-# Cache do PHPUnit
+.idea/
+.vscode/
+.DS_Store
 phpunit.result.cache

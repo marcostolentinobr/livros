@@ -66,6 +66,7 @@ class RelatorioServiceTest extends TestCase
         if (count($result) > 1) {
             // Verifica se está ordenado por autor
             $autorAnterior = '';
+            // Verifica ordem alfabética em cada registro
             foreach ($result as $row) {
                 if ($autorAnterior !== '') {
                     // Se mudou o autor, o novo deve ser maior ou igual (ordem alfabética)

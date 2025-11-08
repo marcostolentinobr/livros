@@ -1,23 +1,17 @@
-# ============================================
-# DOCKERFILE - IMAGEM PHP + APACHE
-# ============================================
-# Define a imagem Docker que será usada pelo container PHP
-# Base: php:8.2-apache (PHP 8.2 com Apache pré-instalado)
-
 FROM php:8.2-apache
 
-# Instalar dependências do sistema e extensões PHP necessárias
+# Instala dependências e extensões PHP
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev \
     && docker-php-ext-configure zip \
     && docker-php-ext-install pdo pdo_mysql zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Habilitar mod_rewrite do Apache (necessário para URLs limpas via .htaccess)
+# Habilita mod_rewrite para URLs amigáveis
 RUN a2enmod rewrite
 
-# Configurar VirtualHost do Apache
-# Define que o diretório 'public/' será a raiz do servidor web
+# Configura VirtualHost apontando para pasta public/
+# AllowOverride All permite uso de .htaccess
 RUN echo '<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
     <Directory /var/www/html/public>\n\
@@ -26,13 +20,11 @@ RUN echo '<VirtualHost *:80>\n\
     </Directory>\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Instalar Composer (gerenciador de dependências PHP)
+# Copia Composer da imagem oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copiar script de entrada e torná-lo executável
-# Este script roda automaticamente quando o container inicia
+# Copia e torna executável script de inicialização
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Definir diretório de trabalho padrão
 WORKDIR /var/www/html

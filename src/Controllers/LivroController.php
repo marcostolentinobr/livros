@@ -2,89 +2,58 @@
 
 namespace App\Controllers;
 
-/**
- * Controller para gerenciar Livros
- * Possui lógica específica para relacionamentos muitos-para-muitos com Autores e Assuntos
- */
+/** Controller para gerenciar livros */
 class LivroController extends BaseController
 {
-
-    /**
-     * Lista todos os livros com suas relações (autores e assuntos)
-     * Sobrescreve o método padrão para incluir dados relacionados
-     */
+    /** Lista livros com relações */
     public function index(): void
     {
-        $livros = $this->model->findAllWithRelations();
-        
-        $this->render('livro/index', [
-            'livros' => $livros
+        $this->render('livro/livro_index', [
+            'livros' => $this->model->findAllWithRelations()
         ]);
     }
 
-    /**
-     * Renderiza o formulário de livro com dados adicionais
-     * Inclui listas de autores e assuntos para seleção
-     * 
-     * @param array|null $livro Dados do livro a ser editado (null para criar novo)
-     * @param string $action Ação do formulário ('store' ou 'update')
-     */
+    /** Renderiza formulário com autores e assuntos */
     protected function renderForm(?array $livro, string $action): void
     {
-        // Busca todos os autores e assuntos disponíveis
-        $autores = (new \App\Models\Autor())->findAll();
-        $assuntos = (new \App\Models\Assunto())->findAll();
-        
         $data = [
             'livro' => $livro,
-            'autores' => $autores,
-            'assuntos' => $assuntos,
+            'autores' => (new \App\Models\Autor())->findAll(),
+            'assuntos' => (new \App\Models\Assunto())->findAll(),
             'action' => $action
         ];
 
-        // Se estiver editando, busca os autores e assuntos já associados ao livro
+        // Carrega relações apenas se for edição
         if ($livro !== null) {
-            $livroId = $livro['Codl'];
-            
-            // Extrai apenas os IDs dos autores associados
-            $autoresAssociados = $this->model->getAutores($livroId);
-            $data['livroAutores'] = array_column($autoresAssociados, 'CodAu');
-            
-            // Extrai apenas os IDs dos assuntos associados
-            $assuntosAssociados = $this->model->getAssuntos($livroId);
-            $data['livroAssuntos'] = array_column($assuntosAssociados, 'codAs');
+            $codigoLivro = $livro['Codl'];
+            $data['livroAutores'] = array_column($this->model->getAutores($codigoLivro), 'CodAu');
+            $data['livroAssuntos'] = array_column($this->model->getAssuntos($codigoLivro), 'codAs');
         }
 
-        $this->render('livro/form', $data);
+        $this->render('livro/livro_form', $data);
     }
 
-    /**
-     * Prepara e valida os dados recebidos do formulário de livro
-     * 
-     * @return array Dados validados e formatados para o banco de dados
-     * @throws \RuntimeException Se algum campo obrigatório estiver vazio
-     */
+    /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
-        // Valida e extrai o título
         $titulo = trim($_POST['titulo'] ?? '');
+        // Valida título obrigatório
         if (empty($titulo)) {
             throw new \RuntimeException("O título é obrigatório.", 400);
         }
 
-        // Valida e extrai a editora
         $editora = trim($_POST['editora'] ?? '');
+        // Valida editora obrigatória
         if (empty($editora)) {
             throw new \RuntimeException("A editora é obrigatória.", 400);
         }
 
-        // Valida e extrai o ano de publicação
         $anoPublicacao = trim($_POST['ano_publicacao'] ?? '');
+        // Valida ano de publicação obrigatório
         if (empty($anoPublicacao)) {
             throw new \RuntimeException("O ano de publicação é obrigatório.", 400);
         }
 
-        // Prepara os dados para o banco de dados
         return [
             'Titulo' => $titulo,
             'Editora' => $editora,
@@ -94,37 +63,19 @@ class LivroController extends BaseController
         ];
     }
 
-    /**
-     * Hook executado após salvar um livro
-     * Associa os autores e assuntos selecionados ao livro
-     * 
-     * @param int $id ID do livro salvo
-     */
+    /** Associa autores e assuntos ao livro */
     protected function afterSave(int $id): void
     {
-        // Associa os autores selecionados ao livro
-        $autores = $_POST['autores'] ?? [];
-        $this->model->setAutores($id, $autores);
-        
-        // Associa os assuntos selecionados ao livro
-        $assuntos = $_POST['assuntos'] ?? [];
-        $this->model->setAssuntos($id, $assuntos);
+        $this->model->setAutores($id, $_POST['autores'] ?? []);
+        $this->model->setAssuntos($id, $_POST['assuntos'] ?? []);
     }
 
-    /**
-     * Converte valor monetário formatado (R$ 1.234,56) para float
-     * 
-     * @param string $value Valor formatado em reais
-     * @return float Valor numérico para armazenar no banco
-     */
+    /** Converte valor monetário formatado para float */
     private function formatCurrencyToDb(string $value): float
     {
-        // Remove símbolos e espaços: "R$ 1.234,56" -> "1234,56"
+        // Remove símbolos e separadores de milhar, depois substitui vírgula por ponto
         $value = str_replace(['R$', ' ', '.'], '', trim($value));
-        
-        // Substitui vírgula por ponto: "1234,56" -> "1234.56"
         $value = str_replace(',', '.', $value);
-        
         return (float) $value;
     }
 }

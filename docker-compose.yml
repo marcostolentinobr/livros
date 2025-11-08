@@ -1,57 +1,47 @@
-# ============================================
-# CONFIGURAÇÃO DO DOCKER COMPOSE
-# ============================================
-# Define os serviços (containers) da aplicação
-# Comando: docker-compose up -d
-
 services:
-  # Serviço: PHP + Apache
   php:
     build:
-      context: .                    # Diretório onde está o Dockerfile
-      dockerfile: docker/Dockerfile # Caminho do Dockerfile
-    container_name: livros_php      # Nome do container
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: livros_php
     volumes:
-      - .:/var/www/html             # Sincroniza código local com container
+      - .:/var/www/html  # Sincroniza código local com container
     ports:
-      - "8888:80"                   # Expõe porta 8888 do host -> 80 do container
+      - "8888:80"  # Porta externa:porta interna
     depends_on:
       db:
-        condition: service_healthy # Aguarda banco estar pronto
-    entrypoint: ["/usr/local/bin/entrypoint.sh"]  # Script executado ao iniciar
+        condition: service_healthy  # Aguarda banco estar pronto
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
     networks:
-      - livros_network              # Rede compartilhada
+      - livros_network
 
-  # Serviço: Banco de Dados (MariaDB)
   db:
-    image: mariadb:10.11            # Imagem oficial do MariaDB
+    image: mariadb:10.11
     container_name: livros_db
     environment:
-      MYSQL_ROOT_PASSWORD: root     # Senha do root
-      MYSQL_DATABASE: livros_db     # Nome do banco criado automaticamente
-      MYSQL_USER: livros_user       # Usuário da aplicação
-      MYSQL_PASSWORD: livros_pass   # Senha do usuário
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: livros_db
+      MYSQL_USER: livros_user
+      MYSQL_PASSWORD: livros_pass
     ports:
-      - "3307:3306"                 # Porta externa 3307 -> porta interna 3306 (evita conflito com MySQL local)
+      - "3307:3306"  # Porta externa 3307 evita conflito com MySQL local
     volumes:
-      - db_data:/var/lib/mysql      # Persistência dos dados
-      # Scripts SQL executados automaticamente na inicialização:
+      - db_data:/var/lib/mysql  # Persistência dos dados
+      # Scripts SQL executados automaticamente na inicialização
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./database/views.sql:/docker-entrypoint-initdb.d/02-views.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s                 # Verifica a cada 10 segundos
+      interval: 10s  # Verifica a cada 10 segundos
       timeout: 5s
       retries: 5
-      start_period: 30s             # Aguarda 30s antes de começar a verificar
+      start_period: 30s  # Aguarda 30s antes de começar verificação
     networks:
       - livros_network
 
-# Volumes (armazenamento persistente)
 volumes:
-  db_data:                          # Dados do banco persistem mesmo após parar container
+  db_data:
 
-# Rede (comunicação entre containers)
 networks:
-  livros_network:                   # Permite PHP se comunicar com DB
+  livros_network:

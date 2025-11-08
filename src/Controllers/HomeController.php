@@ -2,16 +2,12 @@
 
 namespace App\Controllers;
 
-/**
- * Controller para a página inicial do sistema
- */
+/** Controller para página inicial */
 class HomeController extends BaseController
 {
-    /**
-     * Exibe a página inicial com o menu de navegação
-     */
+    /** Exibe página inicial */
     public function index(): void
     {
-        $this->render('home/index');
+        $this->render('home/home_index');
     }
 }

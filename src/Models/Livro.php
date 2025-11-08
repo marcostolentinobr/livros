@@ -70,6 +70,7 @@ class Livro extends Model
         // Insere as novas associações
         if (!empty($autores)) {
             $stmt = $this->db->prepare("INSERT INTO Livro_Autor (Livro_Codl, Autor_CodAu) VALUES (:codl, :id)");
+            // Associa cada autor ao livro
             foreach ($autores as $id) {
                 $stmt->execute(['codl' => $codl, 'id' => $id]);
             }
@@ -101,6 +102,7 @@ class Livro extends Model
         // Insere as novas associações
         if (!empty($assuntos)) {
             $stmt = $this->db->prepare("INSERT INTO Livro_Assunto (Livro_Codl, Assunto_codAs) VALUES (:codl, :id)");
+            // Associa cada assunto ao livro
             foreach ($assuntos as $id) {
                 $stmt->execute(['codl' => $codl, 'id' => $id]);
             }

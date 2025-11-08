@@ -2,29 +2,17 @@
 
 namespace App\Controllers;
 
-/**
- * Controller para gerenciar Assuntos
- * Herda funcionalidades CRUD básicas do BaseController
- */
+/** Controller para gerenciar assuntos */
 class AssuntoController extends BaseController
 {
-
-    /**
-     * Prepara e valida os dados recebidos do formulário
-     * 
-     * @return array Dados validados e formatados para o banco de dados
-     * @throws \RuntimeException Se a descrição estiver vazia
-     */
+    /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
         $descricao = trim($_POST['descricao'] ?? '');
-        
+        // Valida descrição obrigatória
         if (empty($descricao)) {
             throw new \RuntimeException("A descrição é obrigatória.", 400);
         }
-        
-        return [
-            'Descricao' => $descricao
-        ];
+        return ['Descricao' => $descricao];
     }
 }
