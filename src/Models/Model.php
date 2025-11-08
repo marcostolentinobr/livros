@@ -6,14 +6,7 @@ use App\Database\Connection;
 use PDO;
 use PDOException;
 
-/**
- * Classe base abstrata para todos os Models
- * Fornece operações CRUD básicas (Create, Read, Update, Delete)
- * 
- * As classes filhas devem definir:
- * - $table: Nome da tabela no banco de dados
- * - $primaryKey: Nome da chave primária da tabela
- */
+/** Classe base abstrata para todos os Models */
 abstract class Model
 {
     protected string $table;
@@ -25,12 +18,7 @@ abstract class Model
         $this->db = Connection::getInstance();
     }
 
-    /**
-     * Busca um registro pelo ID
-     * 
-     * @param int $id ID do registro
-     * @return array|null Dados do registro ou null se não encontrado
-     */
+    /** Busca um registro pelo ID */
     public function find(int $id): ?array
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE {$this->primaryKey} = :id");
@@ -38,32 +26,54 @@ abstract class Model
         return $stmt->fetch() ?: null;
     }
 
-    /**
-     * Busca todos os registros da tabela
-     * 
-     * @return array Lista de todos os registros ordenados pela chave primária
-     */
+    /** Busca todos os registros da tabela */
     public function findAll(): array
     {
         return $this->db->query("SELECT * FROM {$this->table} ORDER BY {$this->primaryKey}")->fetchAll();
     }
 
-    /**
-     * Cria um novo registro no banco de dados
-     * 
-     * @param array $data Dados do registro (chave => valor)
-     * @return int ID do registro criado
-     * @throws \RuntimeException Em caso de erro ou registro duplicado
-     */
+    /** Busca IDs de uma relação muitos-para-muitos */
+    public function getRelacao(int $id, string $tabela, string $campoId): array
+    {
+        $campoEntidade = $this->table . '_' . $this->primaryKey;
+        $sql = "SELECT {$campoId} FROM {$tabela} WHERE {$campoEntidade} = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return array_column($stmt->fetchAll(), $campoId);
+    }
+
+    /** Define relação muitos-para-muitos entre entidade e outra entidade */
+    public function setRelacao(int $id, array $ids, string $tabela, string $campoId): void
+    {
+        // Remove inválidos e duplicatas
+        $ids = array_filter(array_unique(array_map('intval', $ids)), fn($v) => $v > 0);
+        
+        $campoEntidade = $this->table . '_' . $this->primaryKey;
+        
+        // Transação garante atomicidade (ou tudo ou nada)
+        $this->db->beginTransaction();
+        $this->db->prepare("DELETE FROM {$tabela} WHERE {$campoEntidade} = :id")->execute(['id' => $id]);
+        
+        // Insere novas associações
+        if (!empty($ids)) {
+            $stmt = $this->db->prepare("INSERT INTO {$tabela} ({$campoEntidade}, {$campoId}) VALUES (:id, :relId)");
+            foreach ($ids as $relId) {
+                $stmt->execute(['id' => $id, 'relId' => $relId]);
+            }
+        }
+        
+        $this->db->commit();
+    }
+
+    /** Cria um novo registro no banco de dados */
     public function create(array $data): int
     {
-        // Monta a query INSERT dinamicamente baseado nas chaves do array
+        // Monta query INSERT dinamicamente
         $fields = array_keys($data);
         $fieldsList = implode(', ', $fields);
         $valuesList = ':' . implode(', :', $fields);
         $sql = "INSERT INTO {$this->table} ({$fieldsList}) VALUES ({$valuesList})";
         
-        // Retorna o ID do registro criado
         return $this->executeQuery(
             $sql, 
             $data, 
@@ -73,20 +83,11 @@ abstract class Model
         );
     }
 
-    /**
-     * Atualiza um registro existente no banco de dados
-     * 
-     * @param int $id ID do registro a ser atualizado
-     * @param array $data Dados a serem atualizados (chave => valor)
-     * @return bool true se atualizado com sucesso
-     * @throws \RuntimeException Em caso de erro ou registro duplicado
-     */
+    /** Atualiza um registro existente no banco de dados */
     public function update(int $id, array $data): bool
     {
-        // Monta a cláusula SET dinamicamente
+        // Monta cláusula SET dinamicamente
         $setClause = implode(', ', array_map(fn($field) => "{$field} = :{$field}", array_keys($data)));
-        
-        // Adiciona o ID aos dados para usar na cláusula WHERE
         $data[$this->primaryKey] = $id;
         
         $sql = "UPDATE {$this->table} SET {$setClause} WHERE {$this->primaryKey} = :{$this->primaryKey}";
@@ -100,13 +101,7 @@ abstract class Model
         );
     }
 
-    /**
-     * Exclui um registro do banco de dados
-     * 
-     * @param int $id ID do registro a ser excluído
-     * @return bool true se excluído com sucesso, false se não encontrado
-     * @throws \RuntimeException Em caso de erro (ex: registro em uso por outras tabelas)
-     */
+    /** Exclui um registro do banco de dados */
     public function delete(int $id): bool
     {
         $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
@@ -120,17 +115,7 @@ abstract class Model
         );
     }
 
-    /**
-     * Executa uma query SQL com tratamento de erros e processamento customizado do resultado
-     * 
-     * @param string $sql Query SQL a ser executada
-     * @param array $params Parâmetros para a query
-     * @param string $duplicateMessage Mensagem para erros de duplicação (código 23000)
-     * @param string $action Nome da ação sendo executada (para mensagens de erro)
-     * @param callable $resultProcessor Função que processa o resultado da query (recebe $stmt e retorna o valor final)
-     * @return mixed Resultado processado pela função $resultProcessor
-     * @throws \RuntimeException Em caso de erro
-     */
+    /** Executa query SQL com tratamento de erros */
     private function executeQuery(string $sql, array $params, string $duplicateMessage, string $action, callable $resultProcessor)
     {
         try {

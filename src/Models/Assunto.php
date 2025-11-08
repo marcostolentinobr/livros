@@ -2,10 +2,7 @@
 
 namespace App\Models;
 
-/**
- * Model para a entidade Assunto
- * Gerencia operações CRUD relacionadas a assuntos
- */
+/** Model para a entidade Assunto */
 class Assunto extends Model
 {
     protected string $table = 'Assunto';

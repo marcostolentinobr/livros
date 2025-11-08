@@ -2,10 +2,7 @@
 
 namespace App\Models;
 
-/**
- * Model para a entidade Livro
- * Gerencia operações relacionadas a livros e seus relacionamentos com autores e assuntos
- */
+/** Model para a entidade Livro */
 class Livro extends Model
 {
     protected string $table = 'Livro';
@@ -14,94 +11,31 @@ class Livro extends Model
     /** Busca IDs dos autores associados a um livro */
     public function getAutores(int $codl): array
     {
-        $sql = "SELECT Autor_CodAu FROM Livro_Autor WHERE Livro_Codl = :codl";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['codl' => $codl]);
-        return array_column($stmt->fetchAll(), 'Autor_CodAu');
+        return $this->getRelacao($codl, 'Livro_Autor', 'Autor_CodAu');
     }
 
     /** Busca IDs dos assuntos associados a um livro */
     public function getAssuntos(int $codl): array
     {
-        $sql = "SELECT Assunto_codAs FROM Livro_Assunto WHERE Livro_Codl = :codl";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['codl' => $codl]);
-        return array_column($stmt->fetchAll(), 'Assunto_codAs');
+        return $this->getRelacao($codl, 'Livro_Assunto', 'Assunto_codAs');
     }
 
-    /**
-     * Define os autores associados a um livro
-     * Remove todas as associações anteriores e cria novas
-     * 
-     * @param int $codl Código do livro
-     * @param array $autores Array com os IDs dos autores
-     */
+    /** Define os autores associados a um livro */
     public function setAutores(int $codl, array $autores): void
     {
-        // Normaliza e valida os IDs: converte para inteiro, remove inválidos, duplicatas e reindexa
-        $autores = array_map('intval', $autores);
-        $autores = array_filter($autores, fn($v) => $v > 0);
-        $autores = array_unique($autores);
-        $autores = array_values($autores);
-        
-        $this->db->beginTransaction();
-        
-        // Remove todas as associações existentes
-        $this->db->prepare("DELETE FROM Livro_Autor WHERE Livro_Codl = :codl")->execute(['codl' => $codl]);
-        
-        // Insere as novas associações
-        if (!empty($autores)) {
-            $stmt = $this->db->prepare("INSERT INTO Livro_Autor (Livro_Codl, Autor_CodAu) VALUES (:codl, :id)");
-            // Associa cada autor ao livro
-            foreach ($autores as $id) {
-                $stmt->execute(['codl' => $codl, 'id' => $id]);
-            }
-        }
-        
-        $this->db->commit();
+        $this->setRelacao($codl, $autores, 'Livro_Autor', 'Autor_CodAu');
     }
 
-    /**
-     * Define os assuntos associados a um livro
-     * Remove todas as associações anteriores e cria novas
-     * 
-     * @param int $codl Código do livro
-     * @param array $assuntos Array com os IDs dos assuntos
-     */
+    /** Define os assuntos associados a um livro */
     public function setAssuntos(int $codl, array $assuntos): void
     {
-        // Normaliza e valida os IDs: converte para inteiro, remove inválidos, duplicatas e reindexa
-        $assuntos = array_map('intval', $assuntos);
-        $assuntos = array_filter($assuntos, fn($v) => $v > 0);
-        $assuntos = array_unique($assuntos);
-        $assuntos = array_values($assuntos);
-        
-        $this->db->beginTransaction();
-        
-        // Remove todas as associações existentes
-        $this->db->prepare("DELETE FROM Livro_Assunto WHERE Livro_Codl = :codl")->execute(['codl' => $codl]);
-        
-        // Insere as novas associações
-        if (!empty($assuntos)) {
-            $stmt = $this->db->prepare("INSERT INTO Livro_Assunto (Livro_Codl, Assunto_codAs) VALUES (:codl, :id)");
-            // Associa cada assunto ao livro
-            foreach ($assuntos as $id) {
-                $stmt->execute(['codl' => $codl, 'id' => $id]);
-            }
-        }
-        
-        $this->db->commit();
+        $this->setRelacao($codl, $assuntos, 'Livro_Assunto', 'Assunto_codAs');
     }
 
-    /**
-     * Busca todos os livros com seus autores e assuntos agregados
-     * Retorna os autores e assuntos como strings concatenadas separadas por vírgula
-     * 
-     * @return array Lista de livros com campos Autores e Assuntos
-     */
+    /** Busca todos os livros com autores e assuntos agregados */
     public function findAllWithRelations(): array
     {
-        // Agrega autores e assuntos usando GROUP_CONCAT para criar strings separadas por vírgula
+        // GROUP_CONCAT agrega múltiplos valores em string separada por vírgula
         $sql = "SELECT l.*, 
                        GROUP_CONCAT(DISTINCT a.Nome ORDER BY a.Nome SEPARATOR ', ') as Autores,
                        GROUP_CONCAT(DISTINCT ass.Descricao ORDER BY ass.Descricao SEPARATOR ', ') as Assuntos

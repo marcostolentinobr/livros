@@ -2,10 +2,7 @@
 
 namespace App\Models;
 
-/**
- * Model para a entidade Autor
- * Gerencia operações CRUD relacionadas a autores
- */
+/** Model para a entidade Autor */
 class Autor extends Model
 {
     protected string $table = 'Autor';
