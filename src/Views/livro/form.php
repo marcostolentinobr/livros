@@ -1,12 +1,17 @@
+<!-- Formulário de criação/edição de livro -->
 <div class="row">
     <div class="col-12">
         <div class="card">
+            <!-- Cabeçalho dinâmico: mostra "Editar" ou "Novo" dependendo do contexto -->
             <div class="card-header">
                 <h4 class="mb-0"><i class="bi bi-book"></i> <?= $livro ? 'Editar' : 'Novo' ?> Livro</h4>
             </div>
             <div class="card-body">
                 <form id="livroForm">
+                    <!-- Campo hidden com ID do livro (usado apenas na edição) -->
                     <input type="hidden" name="id" value="<?= $livro['Codl'] ?? '' ?>">
+                    
+                    <!-- Campos básicos do livro -->
                     <div class="row">
                         <div class="col-md-8 mb-3">
                             <label for="titulo" class="form-label">Título *</label>
@@ -19,6 +24,8 @@
                                    value="<?= htmlspecialchars($livro['Editora'] ?? '') ?>" required maxlength="40">
                         </div>
                     </div>
+                    
+                    <!-- Campos numéricos: edição, ano e valor -->
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <label for="edicao" class="form-label">Edição *</label>
@@ -36,7 +43,10 @@
                                    value="<?= $livro ? number_format($livro['Valor'], 2, ',', '.') : '' ?>" required>
                         </div>
                     </div>
+                    
+                    <!-- Seleção de relacionamentos: Autores e Assuntos -->
                     <div class="row">
+                        <!-- Checkboxes para seleção de autores -->
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Autores</label>
                             <div class="border p-2" style="max-height: 200px; overflow-y: auto;">
@@ -52,6 +62,8 @@
                                 <?php endforeach; ?>
                             </div>
                         </div>
+                        
+                        <!-- Checkboxes para seleção de assuntos -->
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Assuntos</label>
                             <div class="border p-2" style="max-height: 200px; overflow-y: auto;">
@@ -68,6 +80,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Botões de ação -->
                     <div class="mt-3">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Salvar</button>
                         <a href="<?= $url('livro') ?>" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancelar</a>
@@ -77,21 +91,27 @@
         </div>
     </div>
 </div>
+
+<!-- Script para envio do formulário via AJAX -->
 <script>
 $(document).ready(function() {
+    // Determina a URL baseada na ação (create ou update) e se há ID
     const livroId = <?= isset($livro) && $livro ? (int)$livro['Codl'] : 'null' ?>;
     const url = '<?= $url('livro/' . $action) ?>' + (livroId !== null ? '/' + livroId : '');
     
+    // Submete o formulário via AJAX
     $('#livroForm').on('submit', function(e) {
         e.preventDefault();
         showLoading();
         
+        // Coleta todos os dados do formulário, incluindo autores e assuntos selecionados
         const data = {
             titulo: $('#titulo').val(),
             editora: $('#editora').val(),
             edicao: $('#edicao').val(),
             ano_publicacao: $('#ano_publicacao').val(),
             valor: $('#valor').val(),
+            // Converte os IDs de autores e assuntos selecionados para inteiros
             autores: $('input[name="autores[]"]:checked').map(function() { return parseInt($(this).val()); }).get(),
             assuntos: $('input[name="assuntos[]"]:checked').map(function() { return parseInt($(this).val()); }).get()
         };
@@ -103,6 +123,7 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
+                    // Redireciona para a listagem com mensagem de sucesso
                     window.location.href = '<?= $url('livro') ?>?success=' + encodeURIComponent(response.message);
                 } else {
                     showMessage(response.message, 'danger');
@@ -110,6 +131,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
+                // Trata erros de validação ou servidor
                 let errorMsg = 'Erro ao salvar livro.';
                 try {
                     const response = JSON.parse(xhr.responseText);

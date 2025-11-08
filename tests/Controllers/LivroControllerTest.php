@@ -8,6 +8,10 @@ use App\Models\Autor;
 use App\Models\Assunto;
 use ReflectionMethod;
 
+/**
+ * Testes para o LivroController
+ * Verifica o processamento de dados, validações e relacionamentos
+ */
 class LivroControllerTest extends TestCase
 {
     private LivroController $controller;
@@ -18,6 +22,10 @@ class LivroControllerTest extends TestCase
         $this->controller = new LivroController();
     }
 
+    /**
+     * Testa se o prepareData converte corretamente os dados do POST
+     * Inclui conversão de moeda (R$ 50,00 -> 50.0)
+     */
     public function testPrepareData(): void
     {
         $_POST['titulo'] = 'Livro Teste';
@@ -37,6 +45,9 @@ class LivroControllerTest extends TestCase
         $this->assertEquals(50.0, $result['Valor']);
     }
 
+    /**
+     * Testa se o prepareData lança exceção quando o título está vazio
+     */
     public function testPrepareDataThrowsExceptionWhenTituloEmpty(): void
     {
         $_POST['titulo'] = '';
@@ -50,6 +61,9 @@ class LivroControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
+    /**
+     * Testa se o prepareData lança exceção quando a editora está vazia
+     */
     public function testPrepareDataThrowsExceptionWhenEditoraEmpty(): void
     {
         $_POST['titulo'] = 'Título';
@@ -63,6 +77,9 @@ class LivroControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
+    /**
+     * Testa se o prepareData lança exceção quando o ano está vazio
+     */
     public function testPrepareDataThrowsExceptionWhenAnoEmpty(): void
     {
         $_POST['titulo'] = 'Título';
@@ -76,6 +93,10 @@ class LivroControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
+    /**
+     * Testa se o prepareData converte corretamente valores monetários complexos
+     * Exemplo: R$ 1.234,56 -> 1234.56
+     */
     public function testFormatCurrencyToDb(): void
     {
         $_POST['titulo'] = 'Título';
@@ -90,12 +111,16 @@ class LivroControllerTest extends TestCase
         $this->assertEquals(1234.56, $result['Valor']);
     }
 
+    /**
+     * Testa se o afterSave associa corretamente autores e assuntos ao livro
+     */
     public function testAfterSave(): void
     {
         $autorModel = new Autor();
         $assuntoModel = new Assunto();
         $livroModel = new \App\Models\Livro();
         
+        // Cria registros de teste
         $autorId = $autorModel->create(['Nome' => 'Autor Teste']);
         $assuntoId = $assuntoModel->create(['Descricao' => 'Assunto Teste']);
         $livroId = $livroModel->create([
@@ -106,13 +131,16 @@ class LivroControllerTest extends TestCase
             'Valor' => 50.00
         ]);
         
+        // Simula dados do POST
         $_POST['autores'] = [$autorId];
         $_POST['assuntos'] = [$assuntoId];
         
+        // Executa o método afterSave
         $method = new ReflectionMethod($this->controller, 'afterSave');
         $method->setAccessible(true);
         $method->invoke($this->controller, $livroId);
         
+        // Verifica se as associações foram criadas
         $autores = $livroModel->getAutores($livroId);
         $assuntos = $livroModel->getAssuntos($livroId);
         

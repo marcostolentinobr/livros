@@ -5,8 +5,11 @@ namespace Tests\Controllers;
 use Tests\TestCase;
 use App\Controllers\AutorController;
 use ReflectionMethod;
-use ReflectionProperty;
 
+/**
+ * Testes para a classe base BaseController
+ * Verifica funcionalidades comuns compartilhadas por todos os controllers
+ */
 class BaseControllerTest extends TestCase
 {
     private AutorController $controller;
@@ -17,6 +20,9 @@ class BaseControllerTest extends TestCase
         $this->controller = new AutorController();
     }
 
+    /**
+     * Testa se o método getModel retorna uma instância do model correto
+     */
     public function testGetModel(): void
     {
         $method = new ReflectionMethod($this->controller, 'getModel');
@@ -26,6 +32,9 @@ class BaseControllerTest extends TestCase
         $this->assertInstanceOf(\App\Models\Autor::class, $model);
     }
 
+    /**
+     * Testa se o model é cacheado (mesma instância em múltiplas chamadas)
+     */
     public function testGetModelIsCached(): void
     {
         $method = new ReflectionMethod($this->controller, 'getModel');
@@ -37,6 +46,9 @@ class BaseControllerTest extends TestCase
         $this->assertSame($model1, $model2);
     }
 
+    /**
+     * Testa se o método getEntityName retorna o nome correto da entidade
+     */
     public function testGetEntityName(): void
     {
         $method = new ReflectionMethod($this->controller, 'getEntityName');
@@ -46,6 +58,9 @@ class BaseControllerTest extends TestCase
         $this->assertEquals('Autor', $name);
     }
 
+    /**
+     * Testa se o método getPluralName retorna o nome no plural correto
+     */
     public function testGetPluralName(): void
     {
         $method = new ReflectionMethod($this->controller, 'getPluralName');

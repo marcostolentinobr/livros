@@ -6,6 +6,10 @@ use Tests\TestCase;
 use App\Controllers\AutorController;
 use ReflectionMethod;
 
+/**
+ * Testes para o AutorController
+ * Verifica o processamento de dados e validações
+ */
 class AutorControllerTest extends TestCase
 {
     private AutorController $controller;
@@ -16,6 +20,9 @@ class AutorControllerTest extends TestCase
         $this->controller = new AutorController();
     }
 
+    /**
+     * Testa se o prepareData converte corretamente os dados do POST
+     */
     public function testPrepareData(): void
     {
         $_POST['nome'] = 'Autor Teste';
@@ -27,6 +34,9 @@ class AutorControllerTest extends TestCase
         $this->assertEquals(['Nome' => 'Autor Teste'], $result);
     }
 
+    /**
+     * Testa se o prepareData lança exceção quando o nome está vazio
+     */
     public function testPrepareDataThrowsExceptionWhenEmpty(): void
     {
         $_POST['nome'] = '';
@@ -38,6 +48,9 @@ class AutorControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
+    /**
+     * Testa se o prepareData remove espaços em branco do início e fim
+     */
     public function testPrepareDataTrimsWhitespace(): void
     {
         $_POST['nome'] = '  Autor com Espaços  ';

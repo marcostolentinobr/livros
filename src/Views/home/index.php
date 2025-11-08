@@ -1,12 +1,17 @@
+<!-- Página inicial do sistema - Dashboard com acesso rápido às funcionalidades -->
 <div class="row">
     <div class="col-12">
         <div class="card">
+            <!-- Cabeçalho da página inicial -->
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0"><i class="bi bi-house-door"></i> Bem-vindo ao Sistema de Cadastro de Livros</h4>
             </div>
             <div class="card-body">
                 <p class="lead">Sistema desenvolvido para gerenciamento de livros, autores e assuntos.</p>
+                
+                <!-- Cards de acesso rápido às principais funcionalidades -->
                 <div class="row mt-4">
+                    <!-- Card: Gerenciamento de Livros -->
                     <div class="col-md-4 mb-3">
                         <div class="card text-center">
                             <div class="card-body">
@@ -17,6 +22,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Card: Gerenciamento de Autores -->
                     <div class="col-md-4 mb-3">
                         <div class="card text-center">
                             <div class="card-body">
@@ -27,6 +34,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Card: Gerenciamento de Assuntos -->
                     <div class="col-md-4 mb-3">
                         <div class="card text-center">
                             <div class="card-body">
@@ -38,6 +47,8 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Seção de Relatórios -->
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="card">
