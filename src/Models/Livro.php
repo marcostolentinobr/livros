@@ -2,99 +2,123 @@
 
 namespace App\Models;
 
-use PDO;
-use PDOException;
-
+/**
+ * Model para a entidade Livro
+ * Gerencia operações relacionadas a livros e seus relacionamentos com autores e assuntos
+ */
 class Livro extends Model
 {
     protected string $table = 'Livro';
     protected string $primaryKey = 'Codl';
 
+    /**
+     * Busca todos os autores associados a um livro
+     * 
+     * @param int $codl Código do livro
+     * @return array Lista de autores com CodAu e Nome
+     */
     public function getAutores(int $codl): array
     {
-        return (new \App\Models\Autor())->findByLivro($codl);
+        // Busca autores através da tabela de junção Livro_Autor
+        $sql = "SELECT a.CodAu, a.Nome 
+                  FROM Autor a 
+                  JOIN Livro_Autor la ON a.CodAu = la.Autor_CodAu 
+                 WHERE la.Livro_Codl = :codl";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['codl' => $codl]);
+        return $stmt->fetchAll();
     }
 
+    /**
+     * Busca todos os assuntos associados a um livro
+     * 
+     * @param int $codl Código do livro
+     * @return array Lista de assuntos com codAs e Descricao
+     */
     public function getAssuntos(int $codl): array
     {
-        return (new \App\Models\Assunto())->findByLivro($codl);
+        // Busca assuntos através da tabela de junção Livro_Assunto
+        $sql = "SELECT a.codAs, a.Descricao 
+                  FROM Assunto a 
+                  JOIN Livro_Assunto las ON a.codAs = las.Assunto_codAs 
+                 WHERE las.Livro_Codl = :codl";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['codl' => $codl]);
+        return $stmt->fetchAll();
     }
 
+    /**
+     * Define os autores associados a um livro
+     * Remove todas as associações anteriores e cria novas
+     * 
+     * @param int $codl Código do livro
+     * @param array $autores Array com os IDs dos autores
+     */
     public function setAutores(int $codl, array $autores): void
     {
-        try {
-            // Garantir que todos os valores são inteiros e remover duplicatas
-            $autores = array_map('intval', $autores);
-            $autores = array_filter($autores, function($v) { return $v > 0; });
-            $autores = array_unique($autores); // Remove duplicatas
-            $autores = array_values($autores); // Reindexa array
-            
-            $this->db->beginTransaction();
-
-            // Remove TODAS as associações existentes primeiro
-            $deleteStmt = $this->db->prepare("DELETE FROM Livro_Autor WHERE Livro_Codl = :codl");
-            $deleteStmt->execute(['codl' => $codl]);
-
-            // Adiciona novas associações
-            if (!empty($autores)) {
-                $stmt = $this->db->prepare("INSERT INTO Livro_Autor (Livro_Codl, Autor_CodAu) VALUES (:codl, :autor)");
-                foreach ($autores as $autorId) {
-                    $stmt->execute(['codl' => $codl, 'autor' => $autorId]);
-                }
+        // Normaliza e valida os IDs: converte para inteiro, remove inválidos, duplicatas e reindexa
+        $autores = array_map('intval', $autores);
+        $autores = array_filter($autores, fn($v) => $v > 0);
+        $autores = array_unique($autores);
+        $autores = array_values($autores);
+        
+        $this->db->beginTransaction();
+        
+        // Remove todas as associações existentes
+        $this->db->prepare("DELETE FROM Livro_Autor WHERE Livro_Codl = :codl")->execute(['codl' => $codl]);
+        
+        // Insere as novas associações
+        if (!empty($autores)) {
+            $stmt = $this->db->prepare("INSERT INTO Livro_Autor (Livro_Codl, Autor_CodAu) VALUES (:codl, :id)");
+            foreach ($autores as $id) {
+                $stmt->execute(['codl' => $codl, 'id' => $id]);
             }
-
-            $this->db->commit();
-        } catch (PDOException $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            error_log("Error setting authors for livro {$codl}: " . $e->getMessage());
-            error_log("Autores recebidos: " . print_r($autores, true));
-            error_log("SQL Error Code: " . $e->getCode());
-            throw new \RuntimeException("Erro ao associar autores ao livro: " . $e->getMessage(), 500);
         }
+        
+        $this->db->commit();
     }
 
+    /**
+     * Define os assuntos associados a um livro
+     * Remove todas as associações anteriores e cria novas
+     * 
+     * @param int $codl Código do livro
+     * @param array $assuntos Array com os IDs dos assuntos
+     */
     public function setAssuntos(int $codl, array $assuntos): void
     {
-        try {
-            // Garantir que todos os valores são inteiros e remover duplicatas
-            $assuntos = array_map('intval', $assuntos);
-            $assuntos = array_filter($assuntos, function($v) { return $v > 0; });
-            $assuntos = array_unique($assuntos); // Remove duplicatas
-            $assuntos = array_values($assuntos); // Reindexa array
-            
-            $this->db->beginTransaction();
-
-            // Remove TODAS as associações existentes primeiro
-            $deleteStmt = $this->db->prepare("DELETE FROM Livro_Assunto WHERE Livro_Codl = :codl");
-            $deleteStmt->execute(['codl' => $codl]);
-
-            // Adiciona novas associações
-            if (!empty($assuntos)) {
-                $stmt = $this->db->prepare("INSERT INTO Livro_Assunto (Livro_Codl, Assunto_codAs) VALUES (:codl, :assunto)");
-                foreach ($assuntos as $assuntoId) {
-                    $stmt->execute(['codl' => $codl, 'assunto' => $assuntoId]);
-                }
+        // Normaliza e valida os IDs: converte para inteiro, remove inválidos, duplicatas e reindexa
+        $assuntos = array_map('intval', $assuntos);
+        $assuntos = array_filter($assuntos, fn($v) => $v > 0);
+        $assuntos = array_unique($assuntos);
+        $assuntos = array_values($assuntos);
+        
+        $this->db->beginTransaction();
+        
+        // Remove todas as associações existentes
+        $this->db->prepare("DELETE FROM Livro_Assunto WHERE Livro_Codl = :codl")->execute(['codl' => $codl]);
+        
+        // Insere as novas associações
+        if (!empty($assuntos)) {
+            $stmt = $this->db->prepare("INSERT INTO Livro_Assunto (Livro_Codl, Assunto_codAs) VALUES (:codl, :id)");
+            foreach ($assuntos as $id) {
+                $stmt->execute(['codl' => $codl, 'id' => $id]);
             }
-
-            $this->db->commit();
-        } catch (PDOException $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            error_log("Error setting subjects for livro {$codl}: " . $e->getMessage());
-            error_log("Assuntos recebidos: " . print_r($assuntos, true));
-            error_log("SQL Error Code: " . $e->getCode());
-            throw new \RuntimeException("Erro ao associar assuntos ao livro: " . $e->getMessage(), 500);
         }
+        
+        $this->db->commit();
     }
 
+    /**
+     * Busca todos os livros com seus autores e assuntos agregados
+     * Retorna os autores e assuntos como strings concatenadas separadas por vírgula
+     * 
+     * @return array Lista de livros com campos Autores e Assuntos
+     */
     public function findAllWithRelations(): array
     {
-        try {
-            $sql = "
-                SELECT l.*, 
+        // Agrega autores e assuntos usando GROUP_CONCAT para criar strings separadas por vírgula
+        $sql = "SELECT l.*, 
                        GROUP_CONCAT(DISTINCT a.Nome ORDER BY a.Nome SEPARATOR ', ') as Autores,
                        GROUP_CONCAT(DISTINCT ass.Descricao ORDER BY ass.Descricao SEPARATOR ', ') as Assuntos
                   FROM Livro l
@@ -103,14 +127,8 @@ class Livro extends Model
              LEFT JOIN Livro_Assunto las ON l.Codl = las.Livro_Codl
              LEFT JOIN Assunto ass ON las.Assunto_codAs = ass.codAs
               GROUP BY l.Codl
-              ORDER BY l.Titulo
-            ";
-            $stmt = $this->db->query($sql);
-            return $stmt->fetchAll();
-        } catch (PDOException $e) {
-            error_log("Error finding all with relations: " . $e->getMessage());
-            throw new \RuntimeException("Erro ao buscar livros com relações.", 500);
-        }
+              ORDER BY l.Titulo";
+        return $this->db->query($sql)->fetchAll();
     }
 }
 

@@ -50,7 +50,7 @@ class AssuntoTest extends TestCase
         $this->assertNull($this->model->find($id));
     }
 
-    public function testFindByLivro(): void
+    public function testGetAssuntosFromLivro(): void
     {
         $assuntoId = $this->model->create(['Descricao' => 'Assunto para Livro']);
         $livroModel = new \App\Models\Livro();
@@ -64,8 +64,9 @@ class AssuntoTest extends TestCase
         
         $livroModel->setAssuntos($livroId, [$assuntoId]);
         
-        $assuntos = $this->model->findByLivro($livroId);
+        $assuntos = $livroModel->getAssuntos($livroId);
         $this->assertIsArray($assuntos);
         $this->assertGreaterThanOrEqual(1, count($assuntos));
+        $this->assertEquals('Assunto para Livro', $assuntos[0]['Descricao']);
     }
 }

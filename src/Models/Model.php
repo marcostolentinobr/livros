@@ -8,11 +8,11 @@ use PDOException;
 
 /**
  * Classe base abstrata para todos os Models
- * Fornece operações CRUD básicas para interação com o banco de dados
+ * Fornece operações CRUD básicas (Create, Read, Update, Delete)
  * 
  * As classes filhas devem definir:
  * - $table: Nome da tabela no banco de dados
- * - $primaryKey: Nome da chave primária
+ * - $primaryKey: Nome da chave primária da tabela
  */
 abstract class Model
 {
@@ -45,8 +45,7 @@ abstract class Model
      */
     public function findAll(): array
     {
-        $stmt = $this->db->query("SELECT * FROM {$this->table} ORDER BY {$this->primaryKey}");
-        return $stmt->fetchAll();
+        return $this->db->query("SELECT * FROM {$this->table} ORDER BY {$this->primaryKey}")->fetchAll();
     }
 
     /**
@@ -54,18 +53,24 @@ abstract class Model
      * 
      * @param array $data Dados do registro (chave => valor)
      * @return int ID do registro criado
-     * @throws \RuntimeException Em caso de erro
+     * @throws \RuntimeException Em caso de erro ou registro duplicado
      */
     public function create(array $data): int
     {
-        return $this->executeWithErrorHandling(function() use ($data) {
-            $keys = array_keys($data);
-            $fields = implode(', ', $keys);
-            $values = ':' . implode(', :', $keys);
-            $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$fields}) VALUES ({$values})");
-            $stmt->execute($data);
-            return (int) $this->db->lastInsertId();
-        }, "Registro duplicado. Verifique os dados informados.", "criar registro");
+        // Monta a query INSERT dinamicamente baseado nas chaves do array
+        $fields = array_keys($data);
+        $fieldsList = implode(', ', $fields);
+        $valuesList = ':' . implode(', :', $fields);
+        $sql = "INSERT INTO {$this->table} ({$fieldsList}) VALUES ({$valuesList})";
+        
+        // Retorna o ID do registro criado
+        return $this->executeQuery(
+            $sql, 
+            $data, 
+            "Registro duplicado. Verifique os dados informados.", 
+            "criar registro",
+            fn() => (int) $this->db->lastInsertId()
+        );
     }
 
     /**
@@ -74,50 +79,66 @@ abstract class Model
      * @param int $id ID do registro a ser atualizado
      * @param array $data Dados a serem atualizados (chave => valor)
      * @return bool true se atualizado com sucesso
-     * @throws \RuntimeException Em caso de erro
+     * @throws \RuntimeException Em caso de erro ou registro duplicado
      */
     public function update(int $id, array $data): bool
     {
-        return $this->executeWithErrorHandling(function() use ($id, $data) {
-            $set = implode(', ', array_map(fn($field) => "{$field} = :{$field}", array_keys($data)));
-            $data[$this->primaryKey] = $id;
-            $stmt = $this->db->prepare("UPDATE {$this->table} SET {$set} WHERE {$this->primaryKey} = :{$this->primaryKey}");
-            $stmt->execute($data);
-            return true;
-        }, "Registro duplicado. Verifique os dados informados.", "atualizar registro");
+        // Monta a cláusula SET dinamicamente
+        $setClause = implode(', ', array_map(fn($field) => "{$field} = :{$field}", array_keys($data)));
+        
+        // Adiciona o ID aos dados para usar na cláusula WHERE
+        $data[$this->primaryKey] = $id;
+        
+        $sql = "UPDATE {$this->table} SET {$setClause} WHERE {$this->primaryKey} = :{$this->primaryKey}";
+        
+        return $this->executeQuery(
+            $sql, 
+            $data, 
+            "Registro duplicado. Verifique os dados informados.", 
+            "atualizar registro",
+            fn() => true
+        );
     }
-
 
     /**
      * Exclui um registro do banco de dados
      * 
      * @param int $id ID do registro a ser excluído
      * @return bool true se excluído com sucesso, false se não encontrado
-     * @throws \RuntimeException Em caso de erro
+     * @throws \RuntimeException Em caso de erro (ex: registro em uso por outras tabelas)
      */
     public function delete(int $id): bool
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
-            $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id");
-            $stmt->execute(['id' => $id]);
-            return $stmt->rowCount() > 0;
-        }, "Não é possível excluir este registro pois está sendo utilizado em outras tabelas.", "excluir registro");
+        $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
+        
+        return $this->executeQuery(
+            $sql, 
+            ['id' => $id], 
+            "Não é possível excluir este registro pois está sendo utilizado em outras tabelas.", 
+            "excluir registro",
+            fn($stmt) => $stmt->rowCount() > 0
+        );
     }
 
     /**
-     * Executa uma operação do banco de dados com tratamento genérico de erros
+     * Executa uma query SQL com tratamento de erros e processamento customizado do resultado
      * 
-     * @param callable $operation Operação a ser executada
-     * @param string $duplicateMessage Mensagem para erros de duplicação
-     * @param string $action Nome da ação sendo executada
-     * @return mixed Resultado da operação
+     * @param string $sql Query SQL a ser executada
+     * @param array $params Parâmetros para a query
+     * @param string $duplicateMessage Mensagem para erros de duplicação (código 23000)
+     * @param string $action Nome da ação sendo executada (para mensagens de erro)
+     * @param callable $resultProcessor Função que processa o resultado da query (recebe $stmt e retorna o valor final)
+     * @return mixed Resultado processado pela função $resultProcessor
      * @throws \RuntimeException Em caso de erro
      */
-    private function executeWithErrorHandling(callable $operation, string $duplicateMessage, string $action)
+    private function executeQuery(string $sql, array $params, string $duplicateMessage, string $action, callable $resultProcessor)
     {
         try {
-            return $operation();
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $resultProcessor($stmt);
         } catch (PDOException $e) {
+            // Código 23000 = violação de constraint (ex: chave duplicada)
             $isDuplicate = $e->getCode() == 23000;
             $message = $isDuplicate ? $duplicateMessage : "Erro ao {$action}: " . $e->getMessage();
             $code = $isDuplicate ? 400 : 500;

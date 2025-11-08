@@ -50,7 +50,7 @@ class AutorTest extends TestCase
         $this->assertNull($this->model->find($id));
     }
 
-    public function testFindByLivro(): void
+    public function testGetAutoresFromLivro(): void
     {
         $autorId = $this->model->create(['Nome' => 'Autor para Livro']);
         $livroModel = new \App\Models\Livro();
@@ -64,8 +64,9 @@ class AutorTest extends TestCase
         
         $livroModel->setAutores($livroId, [$autorId]);
         
-        $autores = $this->model->findByLivro($livroId);
+        $autores = $livroModel->getAutores($livroId);
         $this->assertIsArray($autores);
         $this->assertGreaterThanOrEqual(1, count($autores));
+        $this->assertEquals('Autor para Livro', $autores[0]['Nome']);
     }
 }
