@@ -14,6 +14,11 @@
                         $nomeAmigavel = $field[1];
                         $obrigatorio = $field[2] ?? false;
                         $maxLength = $field[3] ?? null;
+                        $isPrimary = $field[4] ?? false;
+                        
+                        // Não renderiza campos que são chave primária
+                        if ($isPrimary) continue;
+                        
                         $dbKey = str_replace('_', '', ucwords($campo, '_'));
                         $value = $item[$dbKey] ?? '';
                     ?>

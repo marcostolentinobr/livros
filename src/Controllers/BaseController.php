@@ -29,14 +29,34 @@ abstract class BaseController
     /** Lista todos os registros */
     public function index(): void
     {
+        $viewPath = "{$this->viewName}/{$this->viewName}_index";
+        $specificView = __DIR__ . "/../Views/{$viewPath}.php";
+        
+        // Usa view genérica se não existir view específica
+        if (!file_exists($specificView)) {
+            $viewPath = 'layout/index';
+        }
+        
         $data = [];
+        $items = [];
         
         // Se houver model, adiciona dados ao array
         if ($this->model !== null) {
-            $data[$this->pluralName] = $this->model->findAll();
+            $items = $this->model->findAll();
+            $data[$this->pluralName] = $items;
         }
         
-        $this->render("{$this->viewName}/{$this->viewName}_index", $data);
+        $primaryKey = $this->model ? $this->model->getPrimaryKey() : 'id';
+        
+        $data['items'] = $items;
+        $data['fields'] = $this->getFields();
+        $data['primaryKey'] = $primaryKey;
+        $data['entityName'] = $this->entityName;
+        $data['viewName'] = $this->viewName;
+        $data['pluralName'] = $this->pluralName;
+        $data['icon'] = $this->icon;
+        
+        $this->render($viewPath, $data);
     }
 
     /** Exibe formulário de criação/edição */
@@ -152,7 +172,7 @@ abstract class BaseController
     }
 
     /** Valida campos do formulário e retorna array para banco
-     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength]
+     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength, isPrimaryKey]
      * @return array Dados validados prontos para inserção
      */
     protected function validateFields(array $fields): array
@@ -165,6 +185,10 @@ abstract class BaseController
             $nomeAmigavel = $field[1];
             $obrigatorio = $field[2] ?? false;
             $maxLength = $field[3] ?? null;
+            $isPrimary = $field[4] ?? false;
+            
+            // Ignora campos que são chave primária
+            if ($isPrimary) continue;
             
             // Converte campo para formato do banco (PascalCase)
             $dbKey = str_replace('_', '', ucwords($campo, '_'));
@@ -196,7 +220,9 @@ abstract class BaseController
         return $data;
     }
 
-    /** Retorna definição dos campos do formulário */
+    /** Retorna definição dos campos do formulário
+     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength, isPrimaryKey]
+     */
     protected function getFields(): array
     {
         return [];
