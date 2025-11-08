@@ -13,12 +13,14 @@
                     <table class="table table-striped table-hover">
                         <thead class="table-dark">
                             <tr>
-                                <th>Código</th>
+                                <?php if ($showPrimaryKey): ?>
+                                    <th>Código</th>
+                                <?php endif; ?>
                                 <?php foreach ($fields as $field): 
                                     $campo = $field[0];
                                     $dbKey = str_replace('_', '', ucwords($campo, '_'));
                                     
-                                    // Não exibe campos que são chave primária (já exibida como "Código")
+                                    // Não exibe campos que são chave primária (já exibida como "Código" se showPrimaryKey)
                                     if ($primaryKey && $dbKey === $primaryKey) continue;
                                 ?>
                                     <th><?= $field[1] ?></th>
@@ -37,22 +39,25 @@
                                     $displayCount++;
                                 }
                             }
+                            $colspan = $displayCount + 1 + ($showPrimaryKey ? 1 : 0);
                             ?>
                             <?php if (empty($items)): ?>
                                 <tr>
-                                    <td colspan="<?= $displayCount + 2 ?>" class="text-center">
+                                    <td colspan="<?= $colspan ?>" class="text-center">
                                         Nenhum <?= strtolower($entityName) ?> cadastrado.
                                     </td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($items as $item): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($item[$primaryKey] ?? '') ?></td>
+                                        <?php if ($showPrimaryKey): ?>
+                                            <td><?= htmlspecialchars($item[$primaryKey] ?? '') ?></td>
+                                        <?php endif; ?>
                                         <?php foreach ($fields as $field): 
                                             $campo = $field[0];
                                             $dbKey = str_replace('_', '', ucwords($campo, '_'));
                                             
-                                            // Não exibe campos que são chave primária (já exibida como "Código")
+                                            // Não exibe campos que são chave primária (já exibida como "Código" se showPrimaryKey)
                                             if ($primaryKey && $dbKey === $primaryKey) continue;
                                             
                                             $value = $item[$dbKey] ?? '';

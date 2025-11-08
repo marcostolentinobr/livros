@@ -12,6 +12,7 @@ abstract class BaseController
     protected string $viewName;
     protected ?object $model = null;
     protected string $icon = 'bi-file-earmark';
+    protected bool $showPrimaryKey = false;
 
     public function __construct()
     {
@@ -51,6 +52,7 @@ abstract class BaseController
         $data['items'] = $items;
         $data['fields'] = $this->getFields();
         $data['primaryKey'] = $primaryKey;
+        $data['showPrimaryKey'] = $this->showPrimaryKey;
         $data['entityName'] = $this->entityName;
         $data['viewName'] = $this->viewName;
         $data['pluralName'] = $this->pluralName;
@@ -227,6 +229,7 @@ abstract class BaseController
     {
         return [];
     }
+
 
     /** Prepara e valida dados do formulário */
     protected function prepareData(): array
