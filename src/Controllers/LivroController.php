@@ -14,25 +14,6 @@ class LivroController extends BaseController
         ]);
     }
 
-    /** Renderiza formulário com autores e assuntos */
-    protected function renderForm(?array $livro, string $action): void
-    {
-        $data = [
-            'livro' => $livro,
-            'autores' => (new \App\Models\Autor())->findAll(),
-            'assuntos' => (new \App\Models\Assunto())->findAll(),
-            'action' => $action
-        ];
-
-        // Carrega relações apenas se for edição
-        if ($livro !== null) {
-            $codigoLivro = $livro['Codl'];
-            $data['livroAutores'] = $this->model->getAutores($codigoLivro);
-            $data['livroAssuntos'] = $this->model->getAssuntos($codigoLivro);
-        }
-
-        $this->render('livro/livro_form', $data);
-    }
 
     /** Retorna definição dos campos do formulário */
     protected function getFields(): array
@@ -40,7 +21,9 @@ class LivroController extends BaseController
         return [
             ['titulo', 'Título', true, 40],
             ['editora', 'Editora', true, 40],
-            ['ano_publicacao', 'Ano de Publicação', true, 4]
+            ['ano_publicacao', 'Ano de Publicação', true, 4],
+            ['autores', 'Autores', false, null, (new \App\Models\Autor())->findAll(), true],
+            ['assuntos', 'Assuntos', false, null, (new \App\Models\Assunto())->findAll(), true]
         ];
     }
 
@@ -59,8 +42,14 @@ class LivroController extends BaseController
     /** Associa autores e assuntos ao livro */
     protected function afterSave(int $id): void
     {
-        $this->model->setAutores($id, $_POST['autores'] ?? []);
-        $this->model->setAssuntos($id, $_POST['assuntos'] ?? []);
+        // Converte para array se vier como string (select único)
+        $autores = $_POST['autores'] ?? [];
+        $assuntos = $_POST['assuntos'] ?? [];
+        if (!is_array($autores)) $autores = $autores ? [$autores] : [];
+        if (!is_array($assuntos)) $assuntos = $assuntos ? [$assuntos] : [];
+        
+        $this->model->setAutores($id, $autores);
+        $this->model->setAssuntos($id, $assuntos);
     }
 
     /** Converte valor monetário formatado para float */

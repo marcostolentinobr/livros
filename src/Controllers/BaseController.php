@@ -95,6 +95,30 @@ abstract class BaseController
             'icon' => $this->icon
         ];
         
+        // Carrega valores selecionados para campos de relacionamento se for edição
+        if ($item !== null && $this->model !== null) {
+            $fields = $this->getFields();
+            foreach ($fields as $field) {
+                $campo = $field[0];
+                $valorPadrao = $field[4] ?? null;
+                $multiple = $field[5] ?? true;
+                // Se o valor padrão é um array (relacionamento), carrega IDs selecionados
+                if (is_array($valorPadrao) && !empty($valorPadrao)) {
+                    $itemId = $item[$primaryKey];
+                    // Tenta métodos específicos primeiro (getAutores, getAssuntos)
+                    $methodName = 'get' . ucfirst($campo);
+                    if (method_exists($this->model, $methodName)) {
+                        $selected = $this->model->$methodName($itemId);
+                        // Se não for múltiplo, pega apenas o primeiro valor
+                        if (!$multiple && !empty($selected)) {
+                            $selected = [reset($selected)];
+                        }
+                        $data['item' . ucfirst($campo)] = $selected;
+                    }
+                }
+            }
+        }
+        
         // Mantém compatibilidade com views específicas
         $data[$this->viewName] = $item;
         
@@ -174,7 +198,7 @@ abstract class BaseController
     }
 
     /** Valida campos do formulário e retorna array para banco
-     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength]
+     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength, valor_padrao]
      * @return array Dados validados prontos para inserção
      */
     protected function validateFields(array $fields): array
@@ -188,6 +212,10 @@ abstract class BaseController
             $nomeAmigavel = $field[1];
             $obrigatorio = $field[2] ?? false;
             $maxLength = $field[3] ?? null;
+            $valorPadrao = $field[4] ?? null;
+            
+            // Ignora campos de relacionamento (arrays)
+            if (is_array($valorPadrao)) continue;
             
             // Converte campo para formato do banco (PascalCase)
             $dbKey = str_replace('_', '', ucwords($campo, '_'));
@@ -223,7 +251,7 @@ abstract class BaseController
     }
 
     /** Retorna definição dos campos do formulário
-     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength]
+     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength, valor_padrao, multiple]
      */
     protected function getFields(): array
     {
