@@ -7,12 +7,13 @@ use App\Config\App;
 /** Controller base com operações CRUD padrão */
 abstract class BaseController
 {
-    protected string $entityName;
-    protected string $pluralName;
-    protected string $viewName;
-    protected ?object $model = null;
-    protected string $icon = 'bi-file-earmark';
-    protected bool $showPrimaryKey = false;
+    protected $entityName;
+    protected $pluralName;
+    protected $viewName;
+    protected $model = null;
+    protected $icon = 'bi-file-earmark';
+    protected $showPrimaryKey = false;
+    protected $maxLengthMultiple = null;
 
     public function __construct()
     {
@@ -57,6 +58,7 @@ abstract class BaseController
         $data['viewName'] = $this->viewName;
         $data['pluralName'] = $this->pluralName;
         $data['icon'] = $this->icon;
+        $data['maxLengthMultiple'] = $this->maxLengthMultiple;
         
         $this->render($viewPath, $data);
     }

@@ -5,8 +5,9 @@ namespace App\Controllers;
 /** Controller para gerenciar livros */
 class LivroController extends BaseController
 {
-    protected string $icon = 'bi-book';
-    protected bool $showPrimaryKey = true;
+    protected $icon = 'bi-book';
+    protected $showPrimaryKey = true;
+    protected $maxLengthMultiple = 37;
 
     /** Retorna definição dos campos do formulário */
     protected function getFields(): array
@@ -16,7 +17,7 @@ class LivroController extends BaseController
             ['editora', 'Editora', true, 40],
             ['edicao', 'Edição', true, 4, null, 'number'],
             ['ano_publicacao', 'Ano', true, 4, null, 'year'],
-            ['valor', 'Valor', true, null, '0', 'currency'],
+            ['valor', 'Valor(R$)', true, null, '0', 'currency'],
             ['autores', 'Autores', true, null, (new \App\Models\Autor())->findAll(), 'select-multiple'],
             ['assuntos', 'Assuntos', true, null, (new \App\Models\Assunto())->findAll(), 'select-multiple']
         ];

@@ -68,10 +68,17 @@
                                             
                                             // Formata valor conforme tipo
                                             if ($tipo === 'currency') {
-                                                $value = 'R$ ' . number_format((float)$value, 2, ',', '.');
+                                                $value = number_format((float)$value, 2, ',', '.');
                                             } elseif ($tipo === 'select-multiple') {
                                                 // Campos de relacionamento já vêm formatados do findAllWithRelations
-                                                $value = $value ?: '-';
+                                                if (empty($value)) {
+                                                    $value = '-';
+                                                } else {
+                                                    // Trunca a partir do limite configurado e adiciona "..."
+                                                    if (mb_strlen($value) > $maxLengthMultiple) {
+                                                        $value = mb_substr($value, 0, $maxLengthMultiple) . '...';
+                                                    }
+                                                }
                                             }
                                         ?>
                                             <td><?= htmlspecialchars($value) ?></td>

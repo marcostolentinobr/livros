@@ -5,7 +5,7 @@
             <!-- Cabeçalho com título e botão para gerar PDF -->
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Relatório de Livros por Autor</h4>
-                <a href="<?= $url('relatorio/exportar') ?>" class="btn btn-success">
+                <a href="<?= $url('relatorio/exportar') ?>" class="btn btn-success" target="_blank">
                     <i class="bi bi-file-pdf"></i> Gerar PDF
                 </a>
             </div>

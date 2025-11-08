@@ -5,8 +5,8 @@ namespace App\Controllers;
 /** Controller para gerenciar assuntos */
 class AssuntoController extends BaseController
 {
-    protected string $icon = 'bi-tag';
-    protected bool $showPrimaryKey = true;
+    protected $icon = 'bi-tag';
+    protected $showPrimaryKey = true;
 
     /** Retorna definição dos campos do formulário */
     protected function getFields(): array
