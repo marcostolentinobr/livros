@@ -169,5 +169,8 @@ abstract class BaseController
     }
 
     /** Prepara e valida dados do formulário */
-    abstract protected function prepareData(): array;
+    protected function prepareData(): array
+    {
+        return [];
+    }
 }

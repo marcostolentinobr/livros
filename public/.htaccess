@@ -1,7 +1,7 @@
 RewriteEngine On
 
 # Ignora arquivos e diretórios existentes
-RewriteCond %{REQUEST_FILENAME} !-f  # Não é arquivo
-RewriteCond %{REQUEST_FILENAME} !-d  # Não é diretório
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 # QSA: preserva query string, L: última regra (para execução)
 RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
