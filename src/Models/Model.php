@@ -18,6 +18,12 @@ abstract class Model
         $this->db = Connection::getInstance();
     }
 
+    /** Retorna a chave primária do model */
+    public function getPrimaryKey(): string
+    {
+        return $this->primaryKey;
+    }
+
     /** Busca um registro pelo ID */
     public function find(int $id): ?array
     {

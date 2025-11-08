@@ -5,11 +5,12 @@ namespace App\Controllers;
 /** Controller para gerenciar assuntos */
 class AssuntoController extends BaseController
 {
-    /** Prepara e valida dados do formulário */
-    protected function prepareData(): array
+    protected string $icon = 'bi-tag';
+    /** Retorna definição dos campos do formulário */
+    protected function getFields(): array
     {
-        return $this->validateFields([
-            ['descricao', 'Descrição', true]
-        ]);
+        return [
+            ['descricao', 'Descrição', true, 20]
+        ];
     }
 }

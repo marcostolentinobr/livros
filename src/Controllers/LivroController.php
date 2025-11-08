@@ -5,6 +5,7 @@ namespace App\Controllers;
 /** Controller para gerenciar livros */
 class LivroController extends BaseController
 {
+    protected string $icon = 'bi-book';
     /** Lista livros com relações */
     public function index(): void
     {
@@ -33,14 +34,20 @@ class LivroController extends BaseController
         $this->render('livro/livro_form', $data);
     }
 
+    /** Retorna definição dos campos do formulário */
+    protected function getFields(): array
+    {
+        return [
+            ['titulo', 'Título', true, 40],
+            ['editora', 'Editora', true, 40],
+            ['ano_publicacao', 'Ano de Publicação', true, 4]
+        ];
+    }
+
     /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
-        $data = $this->validateFields([
-            ['titulo', 'Título', true],
-            ['editora', 'Editora', true],
-            ['ano_publicacao', 'Ano de Publicação', true]
-        ]);
+        $data = $this->validateFields($this->getFields());
 
         // Campos opcionais com valores padrão
         $data['Edicao'] = (int)($_POST['edicao'] ?? 1);

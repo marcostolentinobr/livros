@@ -11,6 +11,7 @@ abstract class BaseController
     protected string $pluralName;
     protected string $viewName;
     protected ?object $model = null;
+    protected string $icon = 'bi-file-earmark';
 
     public function __construct()
     {
@@ -52,10 +53,30 @@ abstract class BaseController
     /** Renderiza formulário */
     protected function renderForm(?array $item, string $action): void
     {
-        $this->render("{$this->viewName}/{$this->viewName}_form", [
-            $this->viewName => $item,
-            'action' => $action
-        ]);
+        $viewPath = "{$this->viewName}/{$this->viewName}_form";
+        $specificView = __DIR__ . "/../Views/{$viewPath}.php";
+        
+        // Usa view genérica se não existir view específica
+        if (!file_exists($specificView)) {
+            $viewPath = 'layout/form';
+        }
+        
+        $primaryKey = $this->model ? $this->model->getPrimaryKey() : 'id';
+        
+        $data = [
+            'item' => $item,
+            'action' => $action,
+            'fields' => $this->getFields(),
+            'primaryKey' => $primaryKey,
+            'entityName' => $this->entityName,
+            'viewName' => $this->viewName,
+            'icon' => $this->icon
+        ];
+        
+        // Mantém compatibilidade com views específicas
+        $data[$this->viewName] = $item;
+        
+        $this->render($viewPath, $data);
     }
 
     /** Cria novo registro */
@@ -131,7 +152,7 @@ abstract class BaseController
     }
 
     /** Valida campos do formulário e retorna array para banco
-     * @param array $fields Array de [campo, nome_amigavel, obrigatorio]
+     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength]
      * @return array Dados validados prontos para inserção
      */
     protected function validateFields(array $fields): array
@@ -143,6 +164,7 @@ abstract class BaseController
             $campo = $field[0];
             $nomeAmigavel = $field[1];
             $obrigatorio = $field[2] ?? false;
+            $maxLength = $field[3] ?? null;
             
             // Converte campo para formato do banco (PascalCase)
             $dbKey = str_replace('_', '', ucwords($campo, '_'));
@@ -152,6 +174,12 @@ abstract class BaseController
             // Valida campo obrigatório
             if ($obrigatorio && empty($value)) {
                 $errors[] = $nomeAmigavel;
+            }
+            
+            // Valida e trunca tamanho máximo
+            if ($maxLength !== null && mb_strlen($value) > $maxLength) {
+                $errors[] = "{$nomeAmigavel} excede o tamanho máximo de {$maxLength} caracteres.";
+                $value = mb_substr($value, 0, $maxLength);
             }
             
             $data[$dbKey] = $value;
@@ -168,9 +196,16 @@ abstract class BaseController
         return $data;
     }
 
+    /** Retorna definição dos campos do formulário */
+    protected function getFields(): array
+    {
+        return [];
+    }
+
     /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
-        return [];
+        $fields = $this->getFields();
+        return empty($fields) ? [] : $this->validateFields($fields);
     }
 }

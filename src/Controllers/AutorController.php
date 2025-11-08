@@ -6,12 +6,13 @@ namespace App\Controllers;
 class AutorController extends BaseController
 {
     protected string $pluralName = 'autores';
+    protected string $icon = 'bi-person';
 
-    /** Prepara e valida dados do formulário */
-    protected function prepareData(): array
+    /** Retorna definição dos campos do formulário */
+    protected function getFields(): array
     {
-        return $this->validateFields([
-            ['nome', 'Nome', true]
-        ]);
+        return [
+            ['nome', 'Nome', true, 40]
+        ];
     }
 }
