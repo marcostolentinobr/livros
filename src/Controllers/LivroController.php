@@ -26,8 +26,8 @@ class LivroController extends BaseController
         // Carrega relações apenas se for edição
         if ($livro !== null) {
             $codigoLivro = $livro['Codl'];
-            $data['livroAutores'] = array_column($this->model->getAutores($codigoLivro), 'CodAu');
-            $data['livroAssuntos'] = array_column($this->model->getAssuntos($codigoLivro), 'codAs');
+            $data['livroAutores'] = $this->model->getAutores($codigoLivro);
+            $data['livroAssuntos'] = $this->model->getAssuntos($codigoLivro);
         }
 
         $this->render('livro/livro_form', $data);
@@ -41,11 +41,11 @@ class LivroController extends BaseController
             ['editora', 'Editora', true],
             ['ano_publicacao', 'Ano de Publicação', true]
         ]);
-        
+
         // Campos opcionais com valores padrão
         $data['Edicao'] = (int)($_POST['edicao'] ?? 1);
         $data['Valor'] = $this->formatCurrencyToDb($_POST['valor'] ?? '0');
-        
+
         return $data;
     }
 
@@ -62,6 +62,6 @@ class LivroController extends BaseController
         // Remove símbolos e separadores de milhar, depois substitui vírgula por ponto
         $value = str_replace(['R$', ' ', '.'], '', trim($value));
         $value = str_replace(',', '.', $value);
-        return (float) $value;
+        return (float)$value;
     }
 }

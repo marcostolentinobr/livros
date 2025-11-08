@@ -11,40 +11,22 @@ class Livro extends Model
     protected string $table = 'Livro';
     protected string $primaryKey = 'Codl';
 
-    /**
-     * Busca todos os autores associados a um livro
-     * 
-     * @param int $codl Código do livro
-     * @return array Lista de autores com CodAu e Nome
-     */
+    /** Busca IDs dos autores associados a um livro */
     public function getAutores(int $codl): array
     {
-        // Busca autores através da tabela de junção Livro_Autor
-        $sql = "SELECT a.CodAu, a.Nome 
-                  FROM Autor a 
-                  JOIN Livro_Autor la ON a.CodAu = la.Autor_CodAu 
-                 WHERE la.Livro_Codl = :codl";
+        $sql = "SELECT Autor_CodAu FROM Livro_Autor WHERE Livro_Codl = :codl";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['codl' => $codl]);
-        return $stmt->fetchAll();
+        return array_column($stmt->fetchAll(), 'Autor_CodAu');
     }
 
-    /**
-     * Busca todos os assuntos associados a um livro
-     * 
-     * @param int $codl Código do livro
-     * @return array Lista de assuntos com codAs e Descricao
-     */
+    /** Busca IDs dos assuntos associados a um livro */
     public function getAssuntos(int $codl): array
     {
-        // Busca assuntos através da tabela de junção Livro_Assunto
-        $sql = "SELECT a.codAs, a.Descricao 
-                  FROM Assunto a 
-                  JOIN Livro_Assunto las ON a.codAs = las.Assunto_codAs 
-                 WHERE las.Livro_Codl = :codl";
+        $sql = "SELECT Assunto_codAs FROM Livro_Assunto WHERE Livro_Codl = :codl";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['codl' => $codl]);
-        return $stmt->fetchAll();
+        return array_column($stmt->fetchAll(), 'Assunto_codAs');
     }
 
     /**
