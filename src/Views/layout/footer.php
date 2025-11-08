@@ -15,12 +15,19 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-mask-plugin@1.14.16/dist/jquery.mask.min.js"></script>
-    <script src="<?= \App\Config\App::$baseUrl ?>/js/form.js"></script>
     
     <script>
         $(document).ready(function() {
             $('.mask-currency').mask('000.000.000.000,00', {reverse: true});
             $('.mask-year').mask('0000');
+            
+            // Validação de maxlength para campos number
+            $('input[type="number"][data-maxlength]').on('input', function() {
+                const maxLength = parseInt($(this).data('maxlength'));
+                if (maxLength && $(this).val().toString().length > maxLength) {
+                    $(this).val($(this).val().toString().substring(0, maxLength));
+                }
+            });
         });
 
         function showMessage(message, type = 'success') {

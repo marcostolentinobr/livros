@@ -7,7 +7,7 @@ class LivroController extends BaseController
 {
     protected $icon = 'bi-book';
     protected $showPrimaryKey = true;
-    protected $maxLengthMultiple = 37;
+    protected $maxLengthMultiple = 36;
 
     /** Retorna definição dos campos do formulário */
     protected function getFields(): array
