@@ -36,31 +36,17 @@ class LivroController extends BaseController
     /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
-        $titulo = trim($_POST['titulo'] ?? '');
-        // Valida título obrigatório
-        if (empty($titulo)) {
-            throw new \RuntimeException("O título é obrigatório.", 400);
-        }
-
-        $editora = trim($_POST['editora'] ?? '');
-        // Valida editora obrigatória
-        if (empty($editora)) {
-            throw new \RuntimeException("A editora é obrigatória.", 400);
-        }
-
-        $anoPublicacao = trim($_POST['ano_publicacao'] ?? '');
-        // Valida ano de publicação obrigatório
-        if (empty($anoPublicacao)) {
-            throw new \RuntimeException("O ano de publicação é obrigatório.", 400);
-        }
-
-        return [
-            'Titulo' => $titulo,
-            'Editora' => $editora,
-            'Edicao' => (int)($_POST['edicao'] ?? 1),
-            'AnoPublicacao' => $anoPublicacao,
-            'Valor' => $this->formatCurrencyToDb($_POST['valor'] ?? '0')
-        ];
+        $data = $this->validateFields([
+            ['titulo', 'Título', true],
+            ['editora', 'Editora', true],
+            ['ano_publicacao', 'Ano de Publicação', true]
+        ]);
+        
+        // Campos opcionais com valores padrão
+        $data['Edicao'] = (int)($_POST['edicao'] ?? 1);
+        $data['Valor'] = $this->formatCurrencyToDb($_POST['valor'] ?? '0');
+        
+        return $data;
     }
 
     /** Associa autores e assuntos ao livro */

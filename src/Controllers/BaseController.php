@@ -130,6 +130,44 @@ abstract class BaseController
         exit;
     }
 
+    /** Valida campos do formulário e retorna array para banco
+     * @param array $fields Array de [campo, nome_amigavel, obrigatorio]
+     * @return array Dados validados prontos para inserção
+     */
+    protected function validateFields(array $fields): array
+    {
+        $data = [];
+        $errors = [];
+        
+        foreach ($fields as $field) {
+            $campo = $field[0];
+            $nomeAmigavel = $field[1];
+            $obrigatorio = $field[2] ?? false;
+            
+            // Converte campo para formato do banco (PascalCase)
+            $dbKey = str_replace('_', '', ucwords($campo, '_'));
+            
+            $value = trim($_POST[$campo] ?? '');
+            
+            // Valida campo obrigatório
+            if ($obrigatorio && empty($value)) {
+                $errors[] = $nomeAmigavel;
+            }
+            
+            $data[$dbKey] = $value;
+        }
+        
+        // Lança exceção com todos os campos obrigatórios faltantes
+        if (!empty($errors)) {
+            $message = count($errors) === 1 
+                ? "O campo '{$errors[0]}' é obrigatório." 
+                : "Os seguintes campos são obrigatórios: " . implode(', ', $errors) . ".";
+            throw new \RuntimeException($message, 400);
+        }
+        
+        return $data;
+    }
+
     /** Prepara e valida dados do formulário */
     abstract protected function prepareData(): array;
 }

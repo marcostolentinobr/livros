@@ -10,11 +10,8 @@ class AutorController extends BaseController
     /** Prepara e valida dados do formulário */
     protected function prepareData(): array
     {
-        $nome = trim($_POST['nome'] ?? '');
-        // Valida nome obrigatório
-        if (empty($nome)) {
-            throw new \RuntimeException("O nome é obrigatório.", 400);
-        }
-        return ['Nome' => $nome];
+        return $this->validateFields([
+            ['nome', 'Nome', true]
+        ]);
     }
 }
