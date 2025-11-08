@@ -16,6 +16,23 @@ class AssuntoTest extends TestCase
         $this->model = new Assunto();
     }
 
+    /** Testa método find */
+    public function testFind(): void
+    {
+        $id = $this->model->create(['Descricao' => 'Assunto para Find']);
+        $assunto = $this->model->find($id);
+        
+        $this->assertIsArray($assunto);
+        $this->assertEquals($id, $assunto['codAs']);
+    }
+
+    /** Testa método find retorna null quando registro não existe */
+    public function testFindReturnsNullWhenNotFound(): void
+    {
+        $assunto = $this->model->find(99999);
+        $this->assertNull($assunto);
+    }
+
     /** Testa criação de assunto */
     public function testCreate(): void
     {

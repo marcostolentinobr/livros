@@ -16,6 +16,23 @@ class AutorTest extends TestCase
         $this->model = new Autor();
     }
 
+    /** Testa método find */
+    public function testFind(): void
+    {
+        $id = $this->model->create(['Nome' => 'Autor para Find']);
+        $autor = $this->model->find($id);
+        
+        $this->assertIsArray($autor);
+        $this->assertEquals($id, $autor['CodAu']);
+    }
+
+    /** Testa método find retorna null quando registro não existe */
+    public function testFindReturnsNullWhenNotFound(): void
+    {
+        $autor = $this->model->find(99999);
+        $this->assertNull($autor);
+    }
+
     /** Testa criação de autor */
     public function testCreate(): void
     {

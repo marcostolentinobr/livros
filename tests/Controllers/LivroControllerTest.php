@@ -120,8 +120,8 @@ class LivroControllerTest extends TestCase
         $method->setAccessible(true);
         $method->invoke($this->controller, $livroId);
         
-        $autores = $livroModel->getAutores($livroId);
-        $assuntos = $livroModel->getAssuntos($livroId);
+        $autores = $livroModel->getRelacao($livroId, 'Livro_Autor', 'Autor_CodAu');
+        $assuntos = $livroModel->getRelacao($livroId, 'Livro_Assunto', 'Assunto_codAs');
         
         $this->assertCount(1, $autores);
         $this->assertCount(1, $assuntos);

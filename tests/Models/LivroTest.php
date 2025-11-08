@@ -22,6 +22,29 @@ class LivroTest extends TestCase
         $this->assuntoModel = new Assunto();
     }
 
+    /** Testa método find */
+    public function testFind(): void
+    {
+        $id = $this->livroModel->create([
+            'Titulo' => 'Livro para Find',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $livro = $this->livroModel->find($id);
+        $this->assertIsArray($livro);
+        $this->assertEquals($id, $livro['Codl']);
+    }
+
+    /** Testa método find retorna null quando registro não existe */
+    public function testFindReturnsNullWhenNotFound(): void
+    {
+        $livro = $this->livroModel->find(99999);
+        $this->assertNull($livro);
+    }
+
     /** Testa criação de livro */
     public function testCreate(): void
     {
@@ -71,7 +94,7 @@ class LivroTest extends TestCase
         $this->assertNull($this->livroModel->find($id));
     }
 
-    /** Testa associação de autores com livro */
+    /** Testa associação e busca de autores com livro */
     public function testSetAutores(): void
     {
         $autorId = $this->autorModel->create(['Nome' => 'Autor Teste']);
@@ -127,6 +150,28 @@ class LivroTest extends TestCase
         $this->assertCount(1, $assuntos);
     }
 
+    /** Testa busca de todos os livros */
+    public function testFindAll(): void
+    {
+        $this->livroModel->create([
+            'Titulo' => 'Livro 1',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        $this->livroModel->create([
+            'Titulo' => 'Livro 2',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $livros = $this->livroModel->findAll();
+        $this->assertGreaterThanOrEqual(2, count($livros));
+    }
+
     /** Testa busca de livros com relações */
     public function testFindAllWithRelations(): void
     {
@@ -169,5 +214,24 @@ class LivroTest extends TestCase
         
         $autores = $this->livroModel->getAutores($livroId);
         $this->assertGreaterThanOrEqual(2, count($autores));
+    }
+
+    /** Testa associação de múltiplos assuntos com livro */
+    public function testSetAssuntosWithMultiple(): void
+    {
+        $assunto1 = $this->assuntoModel->create(['Descricao' => 'Assunto 1']);
+        $assunto2 = $this->assuntoModel->create(['Descricao' => 'Assunto 2']);
+        $livroId = $this->livroModel->create([
+            'Titulo' => 'Livro Múltiplos Assuntos',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $this->livroModel->setAssuntos($livroId, [$assunto1, $assunto2]);
+        
+        $assuntos = $this->livroModel->getAssuntos($livroId);
+        $this->assertGreaterThanOrEqual(2, count($assuntos));
     }
 }

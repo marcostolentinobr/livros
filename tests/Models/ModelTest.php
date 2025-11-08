@@ -16,7 +16,7 @@ class ModelTest extends TestCase
         $this->model = new Autor();
     }
 
-    /** Testa se o método find retorna um registro existente */
+    /** Testa método find */
     public function testFind(): void
     {
         $id = $this->model->create(['Nome' => 'Autor para Find']);
@@ -26,21 +26,21 @@ class ModelTest extends TestCase
         $this->assertEquals($id, $autor['CodAu']);
     }
 
-    /** Testa se o método find retorna null quando o registro não existe */
+    /** Testa método find retorna null quando registro não existe */
     public function testFindReturnsNullWhenNotFound(): void
     {
         $autor = $this->model->find(99999);
         $this->assertNull($autor);
     }
 
-    /** Testa se o método create cria um novo registro e retorna o ID */
+    /** Testa método create */
     public function testCreate(): void
     {
         $id = $this->model->create(['Nome' => 'Novo Autor']);
         $this->assertGreaterThan(0, $id);
     }
 
-    /** Testa se o método update atualiza um registro existente */
+    /** Testa método update */
     public function testUpdate(): void
     {
         $id = $this->model->create(['Nome' => 'Original']);
@@ -51,7 +51,7 @@ class ModelTest extends TestCase
         $this->assertEquals('Atualizado', $autor['Nome']);
     }
 
-    /** Testa se o método delete remove um registro existente */
+    /** Testa método delete */
     public function testDelete(): void
     {
         $id = $this->model->create(['Nome' => 'Para Excluir']);
@@ -61,11 +61,82 @@ class ModelTest extends TestCase
         $this->assertNull($this->model->find($id));
     }
 
-    /** Testa se o método delete retorna false quando o registro não existe */
+    /** Testa método delete retorna false quando registro não existe */
     public function testDeleteReturnsFalseWhenNotFound(): void
     {
         $result = $this->model->delete(99999);
         $this->assertFalse($result);
+    }
+
+    /** Testa busca de todos os registros */
+    public function testFindAll(): void
+    {
+        $this->model->create(['Nome' => 'Autor 1']);
+        $this->model->create(['Nome' => 'Autor 2']);
+        
+        $autores = $this->model->findAll();
+        $this->assertIsArray($autores);
+        $this->assertGreaterThanOrEqual(2, count($autores));
+    }
+
+    /** Testa método getRelacao */
+    public function testGetRelacao(): void
+    {
+        $livroModel = new \App\Models\Livro();
+        $autorId = $this->model->create(['Nome' => 'Autor Relação']);
+        $livroId = $livroModel->create([
+            'Titulo' => 'Livro Teste',
+            'Editora' => 'Editora',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $livroModel->setRelacao($livroId, [$autorId], 'Livro_Autor', 'Autor_CodAu');
+        
+        $autores = $livroModel->getRelacao($livroId, 'Livro_Autor', 'Autor_CodAu');
+        $this->assertIsArray($autores);
+        $this->assertContains($autorId, $autores);
+    }
+
+    /** Testa método setRelacao */
+    public function testSetRelacao(): void
+    {
+        $livroModel = new \App\Models\Livro();
+        $autorId = $this->model->create(['Nome' => 'Autor Relação']);
+        $livroId = $livroModel->create([
+            'Titulo' => 'Livro Teste',
+            'Editora' => 'Editora',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $livroModel->setRelacao($livroId, [$autorId], 'Livro_Autor', 'Autor_CodAu');
+        
+        $autores = $livroModel->getRelacao($livroId, 'Livro_Autor', 'Autor_CodAu');
+        $this->assertCount(1, $autores);
+        $this->assertEquals($autorId, $autores[0]);
+    }
+
+    /** Testa setRelacao com array vazio */
+    public function testSetRelacaoWithEmptyArray(): void
+    {
+        $livroModel = new \App\Models\Livro();
+        $autorId = $this->model->create(['Nome' => 'Autor Teste']);
+        $livroId = $livroModel->create([
+            'Titulo' => 'Livro Teste',
+            'Editora' => 'Editora',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $livroModel->setRelacao($livroId, [$autorId], 'Livro_Autor', 'Autor_CodAu');
+        $livroModel->setRelacao($livroId, [], 'Livro_Autor', 'Autor_CodAu');
+        
+        $autores = $livroModel->getRelacao($livroId, 'Livro_Autor', 'Autor_CodAu');
+        $this->assertCount(0, $autores);
     }
 }
 
