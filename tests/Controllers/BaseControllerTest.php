@@ -4,12 +4,9 @@ namespace Tests\Controllers;
 
 use Tests\TestCase;
 use App\Controllers\AutorController;
-use ReflectionMethod;
+use ReflectionClass;
 
-/**
- * Testes para a classe base BaseController
- * Verifica funcionalidades comuns compartilhadas por todos os controllers
- */
+/** Testes para a classe base BaseController */
 class BaseControllerTest extends TestCase
 {
     private AutorController $controller;
@@ -20,52 +17,35 @@ class BaseControllerTest extends TestCase
         $this->controller = new AutorController();
     }
 
-    /**
-     * Testa se o método getModel retorna uma instância do model correto
-     */
-    public function testGetModel(): void
+    /** Testa se o model é carregado automaticamente */
+    public function testModelIsLoaded(): void
     {
-        $method = new ReflectionMethod($this->controller, 'getModel');
-        $method->setAccessible(true);
-        $model = $method->invoke($this->controller);
+        $reflection = new ReflectionClass($this->controller);
+        $modelProperty = $reflection->getProperty('model');
+        $modelProperty->setAccessible(true);
+        $model = $modelProperty->getValue($this->controller);
         
         $this->assertInstanceOf(\App\Models\Autor::class, $model);
     }
 
-    /**
-     * Testa se o model é cacheado (mesma instância em múltiplas chamadas)
-     */
-    public function testGetModelIsCached(): void
+    /** Testa se o entityName é definido corretamente */
+    public function testEntityName(): void
     {
-        $method = new ReflectionMethod($this->controller, 'getModel');
-        $method->setAccessible(true);
-        
-        $model1 = $method->invoke($this->controller);
-        $model2 = $method->invoke($this->controller);
-        
-        $this->assertSame($model1, $model2);
-    }
-
-    /**
-     * Testa se o método getEntityName retorna o nome correto da entidade
-     */
-    public function testGetEntityName(): void
-    {
-        $method = new ReflectionMethod($this->controller, 'getEntityName');
-        $method->setAccessible(true);
-        $name = $method->invoke($this->controller);
+        $reflection = new ReflectionClass($this->controller);
+        $entityProperty = $reflection->getProperty('entityName');
+        $entityProperty->setAccessible(true);
+        $name = $entityProperty->getValue($this->controller);
         
         $this->assertEquals('Autor', $name);
     }
 
-    /**
-     * Testa se o método getPluralName retorna o nome no plural correto
-     */
-    public function testGetPluralName(): void
+    /** Testa se o pluralName é definido corretamente */
+    public function testPluralName(): void
     {
-        $method = new ReflectionMethod($this->controller, 'getPluralName');
-        $method->setAccessible(true);
-        $plural = $method->invoke($this->controller);
+        $reflection = new ReflectionClass($this->controller);
+        $pluralProperty = $reflection->getProperty('pluralName');
+        $pluralProperty->setAccessible(true);
+        $plural = $pluralProperty->getValue($this->controller);
         
         $this->assertEquals('autores', $plural);
     }

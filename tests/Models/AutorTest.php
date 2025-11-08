@@ -5,6 +5,7 @@ namespace Tests\Models;
 use Tests\TestCase;
 use App\Models\Autor;
 
+/** Testes para a classe Autor */
 class AutorTest extends TestCase
 {
     private Autor $model;
@@ -15,6 +16,7 @@ class AutorTest extends TestCase
         $this->model = new Autor();
     }
 
+    /** Testa criação de autor */
     public function testCreate(): void
     {
         $id = $this->model->create(['Nome' => 'Autor de Teste']);
@@ -24,6 +26,7 @@ class AutorTest extends TestCase
         $this->assertEquals('Autor de Teste', $autor['Nome']);
     }
 
+    /** Testa busca de todos os autores */
     public function testFindAll(): void
     {
         $this->model->create(['Nome' => 'Autor 1']);
@@ -33,6 +36,7 @@ class AutorTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($autores));
     }
 
+    /** Testa atualização de autor */
     public function testUpdate(): void
     {
         $id = $this->model->create(['Nome' => 'Original']);
@@ -42,6 +46,7 @@ class AutorTest extends TestCase
         $this->assertEquals('Atualizado', $autor['Nome']);
     }
 
+    /** Testa exclusão de autor */
     public function testDelete(): void
     {
         $id = $this->model->create(['Nome' => 'Para Excluir']);
@@ -50,6 +55,7 @@ class AutorTest extends TestCase
         $this->assertNull($this->model->find($id));
     }
 
+    /** Testa associação de autor com livro */
     public function testGetAutoresFromLivro(): void
     {
         $autorId = $this->model->create(['Nome' => 'Autor para Livro']);
@@ -67,6 +73,6 @@ class AutorTest extends TestCase
         $autores = $livroModel->getAutores($livroId);
         $this->assertIsArray($autores);
         $this->assertGreaterThanOrEqual(1, count($autores));
-        $this->assertEquals('Autor para Livro', $autores[0]['Nome']);
+        $this->assertContains($autorId, $autores);
     }
 }

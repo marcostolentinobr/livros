@@ -6,10 +6,7 @@ use Tests\TestCase;
 use App\Controllers\AssuntoController;
 use ReflectionMethod;
 
-/**
- * Testes para o AssuntoController
- * Verifica o processamento de dados e validações
- */
+/** Testes para o AssuntoController */
 class AssuntoControllerTest extends TestCase
 {
     private AssuntoController $controller;
@@ -20,9 +17,7 @@ class AssuntoControllerTest extends TestCase
         $this->controller = new AssuntoController();
     }
 
-    /**
-     * Testa se o prepareData converte corretamente os dados do POST
-     */
+    /** Testa se o prepareData converte corretamente os dados do POST */
     public function testPrepareData(): void
     {
         $_POST['descricao'] = 'Assunto Teste';
@@ -34,9 +29,7 @@ class AssuntoControllerTest extends TestCase
         $this->assertEquals(['Descricao' => 'Assunto Teste'], $result);
     }
 
-    /**
-     * Testa se o prepareData lança exceção quando a descrição está vazia
-     */
+    /** Testa se o prepareData lança exceção quando a descrição está vazia */
     public function testPrepareDataThrowsExceptionWhenEmpty(): void
     {
         $_POST['descricao'] = '';
