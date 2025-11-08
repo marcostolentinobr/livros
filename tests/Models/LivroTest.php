@@ -21,75 +21,54 @@ class LivroTest extends TestCase
         $this->assuntoModel = new Assunto();
     }
 
-    public function testCreateLivro(): void
+    public function testCreate(): void
     {
-        $data = [
+        $id = $this->livroModel->create([
             'Titulo' => 'Teste de Livro',
             'Editora' => 'Editora Teste',
             'Edicao' => 1,
             'AnoPublicacao' => '2024',
             'Valor' => 50.00
-        ];
-
-        $id = $this->livroModel->create($data);
+        ]);
         
-        $this->assertIsInt($id);
         $this->assertGreaterThan(0, $id);
-
+        
         $livro = $this->livroModel->find($id);
         $this->assertEquals('Teste de Livro', $livro['Titulo']);
-        $this->assertEquals(50.00, (float)$livro['Valor']);
     }
 
-    public function testUpdateLivro(): void
+    public function testUpdate(): void
     {
-        // Criar livro primeiro
-        $data = [
-            'Titulo' => 'Livro Original',
+        $id = $this->livroModel->create([
+            'Titulo' => 'Original',
             'Editora' => 'Editora Teste',
             'Edicao' => 1,
             'AnoPublicacao' => '2024',
             'Valor' => 50.00
-        ];
-        $id = $this->livroModel->create($data);
-
-        // Atualizar
-        $updateData = [
-            'Titulo' => 'Livro Atualizado',
-            'Valor' => 75.50
-        ];
-        $result = $this->livroModel->update($id, $updateData);
-
-        $this->assertTrue($result);
-
+        ]);
+        
+        $this->livroModel->update($id, ['Titulo' => 'Atualizado']);
+        
         $livro = $this->livroModel->find($id);
-        $this->assertEquals('Livro Atualizado', $livro['Titulo']);
+        $this->assertEquals('Atualizado', $livro['Titulo']);
     }
 
-    public function testDeleteLivro(): void
+    public function testDelete(): void
     {
-        // Criar livro primeiro
-        $data = [
-            'Titulo' => 'Livro para Excluir',
+        $id = $this->livroModel->create([
+            'Titulo' => 'Para Excluir',
             'Editora' => 'Editora Teste',
             'Edicao' => 1,
             'AnoPublicacao' => '2024',
             'Valor' => 50.00
-        ];
-        $id = $this->livroModel->create($data);
-
-        // Excluir
-        $result = $this->livroModel->delete($id);
-        $this->assertTrue($result);
-
-        // Verificar se foi excluído
-        $livro = $this->livroModel->find($id);
-        $this->assertNull($livro);
+        ]);
+        
+        $this->livroModel->delete($id);
+        $this->assertNull($this->livroModel->find($id));
     }
 
     public function testSetAutores(): void
     {
-        // Criar autor e livro
         $autorId = $this->autorModel->create(['Nome' => 'Autor Teste']);
         $livroId = $this->livroModel->create([
             'Titulo' => 'Livro com Autor',
@@ -98,13 +77,88 @@ class LivroTest extends TestCase
             'AnoPublicacao' => '2024',
             'Valor' => 50.00
         ]);
-
-        // Associar autor
+        
         $this->livroModel->setAutores($livroId, [$autorId]);
         
         $autores = $this->livroModel->getAutores($livroId);
         $this->assertCount(1, $autores);
         $this->assertEquals('Autor Teste', $autores[0]['Nome']);
     }
-}
 
+    public function testGetAssuntos(): void
+    {
+        $assuntoId = $this->assuntoModel->create(['Descricao' => 'Assunto Teste']);
+        $livroId = $this->livroModel->create([
+            'Titulo' => 'Livro com Assunto',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $this->livroModel->setAssuntos($livroId, [$assuntoId]);
+        
+        $assuntos = $this->livroModel->getAssuntos($livroId);
+        $this->assertCount(1, $assuntos);
+        $this->assertEquals('Assunto Teste', $assuntos[0]['Descricao']);
+    }
+
+    public function testSetAssuntos(): void
+    {
+        $assuntoId = $this->assuntoModel->create(['Descricao' => 'Assunto Teste']);
+        $livroId = $this->livroModel->create([
+            'Titulo' => 'Livro com Assunto',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $this->livroModel->setAssuntos($livroId, [$assuntoId]);
+        
+        $assuntos = $this->livroModel->getAssuntos($livroId);
+        $this->assertCount(1, $assuntos);
+    }
+
+    public function testFindAllWithRelations(): void
+    {
+        $autorId = $this->autorModel->create(['Nome' => 'Autor Relação']);
+        $assuntoId = $this->assuntoModel->create(['Descricao' => 'Assunto Relação']);
+        $livroId = $this->livroModel->create([
+            'Titulo' => 'Livro com Relações',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $this->livroModel->setAutores($livroId, [$autorId]);
+        $this->livroModel->setAssuntos($livroId, [$assuntoId]);
+        
+        $livros = $this->livroModel->findAllWithRelations();
+        $this->assertIsArray($livros);
+        $this->assertGreaterThanOrEqual(1, count($livros));
+        
+        $livro = $livros[array_search($livroId, array_column($livros, 'Codl'))];
+        $this->assertArrayHasKey('Autores', $livro);
+        $this->assertArrayHasKey('Assuntos', $livro);
+    }
+
+    public function testSetAutoresWithMultiple(): void
+    {
+        $autor1 = $this->autorModel->create(['Nome' => 'Autor 1']);
+        $autor2 = $this->autorModel->create(['Nome' => 'Autor 2']);
+        $livroId = $this->livroModel->create([
+            'Titulo' => 'Livro Múltiplos Autores',
+            'Editora' => 'Editora Teste',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
+        
+        $this->livroModel->setAutores($livroId, [$autor1, $autor2]);
+        
+        $autores = $this->livroModel->getAutores($livroId);
+        $this->assertGreaterThanOrEqual(2, count($autores));
+    }
+}

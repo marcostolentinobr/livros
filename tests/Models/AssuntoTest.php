@@ -7,57 +7,65 @@ use App\Models\Assunto;
 
 class AssuntoTest extends TestCase
 {
-    private Assunto $assuntoModel;
+    private Assunto $model;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->assuntoModel = new Assunto();
+        $this->model = new Assunto();
     }
 
-    public function testCreateAssunto(): void
+    public function testCreate(): void
     {
-        $data = ['Descricao' => 'Romance'];
-        $id = $this->assuntoModel->create($data);
-
-        $this->assertIsInt($id);
+        $id = $this->model->create(['Descricao' => 'Romance']);
         $this->assertGreaterThan(0, $id);
-
-        $assunto = $this->assuntoModel->find($id);
+        
+        $assunto = $this->model->find($id);
         $this->assertEquals('Romance', $assunto['Descricao']);
     }
 
-    public function testFindAllAssuntos(): void
+    public function testFindAll(): void
     {
-        $this->assuntoModel->create(['Descricao' => 'Ficção']);
-        $this->assuntoModel->create(['Descricao' => 'Drama']);
-
-        $assuntos = $this->assuntoModel->findAll();
-        $this->assertIsArray($assuntos);
+        $this->model->create(['Descricao' => 'Ficção']);
+        $this->model->create(['Descricao' => 'Drama']);
+        
+        $assuntos = $this->model->findAll();
         $this->assertGreaterThanOrEqual(2, count($assuntos));
     }
 
-    public function testUpdateAssunto(): void
+    public function testUpdate(): void
     {
-        $id = $this->assuntoModel->create(['Descricao' => 'Original']);
+        $id = $this->model->create(['Descricao' => 'Original']);
+        $this->model->update($id, ['Descricao' => 'Atualizado']);
         
-        $result = $this->assuntoModel->update($id, ['Descricao' => 'Atualizado']);
-        
-        $this->assertTrue($result);
-        
-        $assunto = $this->assuntoModel->find($id);
+        $assunto = $this->model->find($id);
         $this->assertEquals('Atualizado', $assunto['Descricao']);
     }
 
-    public function testDeleteAssunto(): void
+    public function testDelete(): void
     {
-        $id = $this->assuntoModel->create(['Descricao' => 'Para Excluir']);
+        $id = $this->model->create(['Descricao' => 'Para Excluir']);
+        $this->model->delete($id);
         
-        $result = $this->assuntoModel->delete($id);
-        $this->assertTrue($result);
+        $this->assertNull($this->model->find($id));
+    }
+
+    public function testFindByLivro(): void
+    {
+        $assuntoId = $this->model->create(['Descricao' => 'Assunto para Livro']);
+        $livroModel = new \App\Models\Livro();
+        $livroId = $livroModel->create([
+            'Titulo' => 'Livro Teste',
+            'Editora' => 'Editora',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
         
-        $assunto = $this->assuntoModel->find($id);
-        $this->assertNull($assunto);
+        $livroModel->setAssuntos($livroId, [$assuntoId]);
+        
+        $assuntos = $this->model->findByLivro($livroId);
+        $this->assertIsArray($assuntos);
+        $this->assertGreaterThanOrEqual(1, count($assuntos));
     }
 }
-

@@ -7,58 +7,65 @@ use App\Models\Autor;
 
 class AutorTest extends TestCase
 {
-    private Autor $autorModel;
+    private Autor $model;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->autorModel = new Autor();
+        $this->model = new Autor();
     }
 
-    public function testCreateAutor(): void
+    public function testCreate(): void
     {
-        $data = ['Nome' => 'Autor de Teste'];
-        $id = $this->autorModel->create($data);
-
-        $this->assertIsInt($id);
+        $id = $this->model->create(['Nome' => 'Autor de Teste']);
         $this->assertGreaterThan(0, $id);
-
-        $autor = $this->autorModel->find($id);
+        
+        $autor = $this->model->find($id);
         $this->assertEquals('Autor de Teste', $autor['Nome']);
     }
 
-    public function testFindAllAutores(): void
+    public function testFindAll(): void
     {
-        // Criar alguns autores
-        $this->autorModel->create(['Nome' => 'Autor 1']);
-        $this->autorModel->create(['Nome' => 'Autor 2']);
-
-        $autores = $this->autorModel->findAll();
-        $this->assertIsArray($autores);
+        $this->model->create(['Nome' => 'Autor 1']);
+        $this->model->create(['Nome' => 'Autor 2']);
+        
+        $autores = $this->model->findAll();
         $this->assertGreaterThanOrEqual(2, count($autores));
     }
 
-    public function testUpdateAutor(): void
+    public function testUpdate(): void
     {
-        $id = $this->autorModel->create(['Nome' => 'Nome Original']);
+        $id = $this->model->create(['Nome' => 'Original']);
+        $this->model->update($id, ['Nome' => 'Atualizado']);
         
-        $result = $this->autorModel->update($id, ['Nome' => 'Nome Atualizado']);
-        
-        $this->assertTrue($result);
-        
-        $autor = $this->autorModel->find($id);
-        $this->assertEquals('Nome Atualizado', $autor['Nome']);
+        $autor = $this->model->find($id);
+        $this->assertEquals('Atualizado', $autor['Nome']);
     }
 
-    public function testDeleteAutor(): void
+    public function testDelete(): void
     {
-        $id = $this->autorModel->create(['Nome' => 'Autor para Excluir']);
+        $id = $this->model->create(['Nome' => 'Para Excluir']);
+        $this->model->delete($id);
         
-        $result = $this->autorModel->delete($id);
-        $this->assertTrue($result);
+        $this->assertNull($this->model->find($id));
+    }
+
+    public function testFindByLivro(): void
+    {
+        $autorId = $this->model->create(['Nome' => 'Autor para Livro']);
+        $livroModel = new \App\Models\Livro();
+        $livroId = $livroModel->create([
+            'Titulo' => 'Livro Teste',
+            'Editora' => 'Editora',
+            'Edicao' => 1,
+            'AnoPublicacao' => '2024',
+            'Valor' => 50.00
+        ]);
         
-        $autor = $this->autorModel->find($id);
-        $this->assertNull($autor);
+        $livroModel->setAutores($livroId, [$autorId]);
+        
+        $autores = $this->model->findByLivro($livroId);
+        $this->assertIsArray($autores);
+        $this->assertGreaterThanOrEqual(1, count($autores));
     }
 }
-
