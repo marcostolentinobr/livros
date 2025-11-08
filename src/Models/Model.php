@@ -9,9 +9,9 @@ use PDOException;
 /** Classe base abstrata para todos os Models */
 abstract class Model
 {
-    protected string $table;
-    protected string $primaryKey;
-    protected PDO $db;
+    protected $table;
+    protected $primaryKey;
+    protected $db;
 
     public function __construct()
     {
@@ -19,13 +19,13 @@ abstract class Model
     }
 
     /** Retorna a chave primária do model */
-    public function getPrimaryKey(): string
+    public function getPrimaryKey()
     {
         return $this->primaryKey;
     }
 
     /** Busca um registro pelo ID */
-    public function find(int $id): ?array
+    public function find($id)
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE {$this->primaryKey} = :id");
         $stmt->execute(['id' => $id]);
@@ -33,13 +33,19 @@ abstract class Model
     }
 
     /** Busca todos os registros da tabela */
-    public function findAll(): array
+    public function findAll()
     {
         return $this->db->query("SELECT * FROM {$this->table} ORDER BY {$this->primaryKey}")->fetchAll();
     }
 
+    /** Busca todos os registros para exibição na listagem (pode ser sobrescrito) */
+    public function findAllForIndex()
+    {
+        return $this->findAll();
+    }
+
     /** Busca IDs de uma relação muitos-para-muitos */
-    public function getRelacao(int $id, string $tabela, string $campoId): array
+    public function getRelacao($id, $tabela, $campoId)
     {
         $campoEntidade = $this->table . '_' . $this->primaryKey;
         $sql = "SELECT {$campoId} FROM {$tabela} WHERE {$campoEntidade} = :id";
@@ -49,7 +55,7 @@ abstract class Model
     }
 
     /** Define relação muitos-para-muitos entre entidade e outra entidade */
-    public function setRelacao(int $id, array $ids, string $tabela, string $campoId): void
+    public function setRelacao($id, $ids, $tabela, $campoId)
     {
         // Remove inválidos e duplicatas
         $ids = array_filter(array_unique(array_map('intval', $ids)), fn($v) => $v > 0);
@@ -72,7 +78,7 @@ abstract class Model
     }
 
     /** Cria um novo registro no banco de dados */
-    public function create(array $data): int
+    public function create($data)
     {
         // Monta query INSERT dinamicamente
         $fields = array_keys($data);
@@ -90,7 +96,7 @@ abstract class Model
     }
 
     /** Atualiza um registro existente no banco de dados */
-    public function update(int $id, array $data): bool
+    public function update($id, $data)
     {
         // Monta cláusula SET dinamicamente
         $setClause = implode(', ', array_map(fn($field) => "{$field} = :{$field}", array_keys($data)));
@@ -108,7 +114,7 @@ abstract class Model
     }
 
     /** Exclui um registro do banco de dados */
-    public function delete(int $id): bool
+    public function delete($id)
     {
         $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
         
@@ -122,7 +128,7 @@ abstract class Model
     }
 
     /** Executa query SQL com tratamento de erros */
-    private function executeQuery(string $sql, array $params, string $duplicateMessage, string $action, callable $resultProcessor)
+    private function executeQuery($sql, $params, $duplicateMessage, $action, $resultProcessor)
     {
         try {
             $stmt = $this->db->prepare($sql);

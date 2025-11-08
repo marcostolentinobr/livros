@@ -5,35 +5,35 @@ namespace App\Models;
 /** Model para a entidade Livro */
 class Livro extends Model
 {
-    protected string $table = 'Livro';
-    protected string $primaryKey = 'Codl';
+    protected $table = 'Livro';
+    protected $primaryKey = 'Codl';
 
     /** Busca IDs dos autores associados a um livro */
-    public function getAutores(int $codl): array
+    public function getAutores($codl)
     {
         return $this->getRelacao($codl, 'Livro_Autor', 'Autor_CodAu');
     }
 
     /** Busca IDs dos assuntos associados a um livro */
-    public function getAssuntos(int $codl): array
+    public function getAssuntos($codl)
     {
         return $this->getRelacao($codl, 'Livro_Assunto', 'Assunto_codAs');
     }
 
     /** Define os autores associados a um livro */
-    public function setAutores(int $codl, array $autores): void
+    public function setAutores($codl, $autores)
     {
         $this->setRelacao($codl, $autores, 'Livro_Autor', 'Autor_CodAu');
     }
 
     /** Define os assuntos associados a um livro */
-    public function setAssuntos(int $codl, array $assuntos): void
+    public function setAssuntos($codl, $assuntos)
     {
         $this->setRelacao($codl, $assuntos, 'Livro_Assunto', 'Assunto_codAs');
     }
 
-    /** Busca todos os livros com autores e assuntos agregados */
-    public function findAllWithRelations(): array
+    /** Busca todos os livros com autores e assuntos agregados para listagem */
+    public function findAllForIndex()
     {
         // GROUP_CONCAT agrega múltiplos valores em string separada por vírgula
         $sql = "SELECT l.*, 

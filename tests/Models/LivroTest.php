@@ -179,7 +179,7 @@ class LivroTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($livros));
     }
 
-    public function testFindAllWithRelations(): void
+    public function testFindAllForIndex(): void
     {
         $autorId = $this->autorModel->create(['Nome' => 'Autor Relação']);
         $assuntoId = $this->assuntoModel->create(['Descricao' => 'Assunto Relação']);
@@ -194,7 +194,7 @@ class LivroTest extends TestCase
         $this->livroModel->setAutores($livroId, [$autorId]);
         $this->livroModel->setAssuntos($livroId, [$assuntoId]);
         
-        $livros = $this->livroModel->findAllWithRelations();
+        $livros = $this->livroModel->findAllForIndex();
         $this->assertIsArray($livros);
         $this->assertGreaterThanOrEqual(1, count($livros));
         

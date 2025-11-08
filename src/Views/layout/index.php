@@ -56,7 +56,23 @@
                                             $dbKey = str_replace('_', '', ucwords($campo, '_'));
                                             // Ignora campos que são chave primária
                                             if ($primaryKey && $dbKey === $primaryKey) continue;
-                                            $value = $item[$dbKey] ?? '';
+                                            $tipo = $field[5] ?? null;
+                                            
+                                            // Para campos de relacionamento, busca com primeira letra maiúscula (Autores, Assuntos)
+                                            if ($tipo === 'select-multiple') {
+                                                $relKey = ucfirst($campo); // autores -> Autores, assuntos -> Assuntos
+                                                $value = $item[$relKey] ?? ($item[$dbKey] ?? '');
+                                            } else {
+                                                $value = $item[$dbKey] ?? '';
+                                            }
+                                            
+                                            // Formata valor conforme tipo
+                                            if ($tipo === 'currency') {
+                                                $value = 'R$ ' . number_format((float)$value, 2, ',', '.');
+                                            } elseif ($tipo === 'select-multiple') {
+                                                // Campos de relacionamento já vêm formatados do findAllWithRelations
+                                                $value = $value ?: '-';
+                                            }
                                         ?>
                                             <td><?= htmlspecialchars($value) ?></td>
                                         <?php endforeach; ?>

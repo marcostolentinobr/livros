@@ -6,14 +6,7 @@ namespace App\Controllers;
 class LivroController extends BaseController
 {
     protected string $icon = 'bi-book';
-    /** Lista livros com relações */
-    public function index(): void
-    {
-        $this->render('livro/livro_index', [
-            'livros' => $this->model->findAllWithRelations()
-        ]);
-    }
-
+    protected bool $showPrimaryKey = true;
 
     /** Retorna definição dos campos do formulário */
     protected function getFields(): array
@@ -21,19 +14,12 @@ class LivroController extends BaseController
         return [
             ['titulo', 'Título', true, 40],
             ['editora', 'Editora', true, 40],
-            ['ano_publicacao', 'Ano de Publicação', true, 4, null, 'year'],
-            ['edicao', 'Edição', true, 4, 4, 'number'],
-            ['valor', 'Valor (R$)', true, null, '0', 'currency'],
+            ['edicao', 'Edição', true, 4, null, 'number'],
+            ['ano_publicacao', 'Ano', true, 4, null, 'year'],
+            ['valor', 'Valor', true, null, '0', 'currency'],
             ['autores', 'Autores', true, null, (new \App\Models\Autor())->findAll(), 'select-multiple'],
             ['assuntos', 'Assuntos', true, null, (new \App\Models\Assunto())->findAll(), 'select-multiple']
         ];
-    }
-
-    /** Prepara e valida dados do formulário */
-    protected function prepareData(): array
-    {
-        $data = $this->validateFields($this->getFields());
-        return $data;
     }
 
     /** Associa autores e assuntos ao livro */

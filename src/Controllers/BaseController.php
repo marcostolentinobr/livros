@@ -43,7 +43,7 @@ abstract class BaseController
         
         // Se houver model, adiciona dados ao array
         if ($this->model !== null) {
-            $items = $this->model->findAll();
+            $items = $this->model->findAllForIndex();
             $data[$this->pluralName] = $items;
         }
         
