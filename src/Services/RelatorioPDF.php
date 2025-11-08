@@ -3,17 +3,15 @@
 namespace App\Services;
 
 use TCPDF;
-use App\Database\Connection;
-use PDO;
+use App\Services\RelatorioService;
 
 /** Service para geração de relatórios em PDF */
 class RelatorioPDF
 {
-    private TCPDF $pdf;
+    private $pdf;
 
     public function __construct()
     {
-        // P=Portrait, mm=unidade, A4=formato, UTF-8=encoding
         $this->pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
         $this->pdf->SetMargins(15, 20, 15);
         $this->pdf->SetAutoPageBreak(TRUE, 15);
@@ -23,8 +21,7 @@ class RelatorioPDF
     /** Gera o relatório completo em PDF */
     public function gerarRelatorio(): void
     {
-        $db = Connection::getInstance();
-        $dados = $db->query("SELECT * FROM vw_livros_por_autor ORDER BY NomeAutor, Titulo")->fetchAll(PDO::FETCH_ASSOC);
+        $dados = (new RelatorioService())->getLivrosPorAutor();
 
         // Título do sistema
         $this->pdf->SetFont('helvetica', 'B', 16);
