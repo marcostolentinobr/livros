@@ -28,9 +28,14 @@ abstract class BaseController
     /** Lista todos os registros */
     public function index(): void
     {
-        $this->render("{$this->viewName}/{$this->viewName}_index", [
-            $this->pluralName => $this->model->findAll()
-        ]);
+        $data = [];
+        
+        // Se houver model, adiciona dados ao array
+        if ($this->model !== null) {
+            $data[$this->pluralName] = $this->model->findAll();
+        }
+        
+        $this->render("{$this->viewName}/{$this->viewName}_index", $data);
     }
 
     /** Exibe formulário de criação/edição */
