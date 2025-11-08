@@ -21,9 +21,11 @@ class LivroController extends BaseController
         return [
             ['titulo', 'Título', true, 40],
             ['editora', 'Editora', true, 40],
-            ['ano_publicacao', 'Ano de Publicação', true, 4],
-            ['autores', 'Autores', false, null, (new \App\Models\Autor())->findAll(), true],
-            ['assuntos', 'Assuntos', false, null, (new \App\Models\Assunto())->findAll(), true]
+            ['ano_publicacao', 'Ano de Publicação', true, 4, null, 'year'],
+            ['edicao', 'Edição', true, 4, 4, 'number'],
+            ['valor', 'Valor (R$)', true, null, '0', 'currency'],
+            ['autores', 'Autores', true, null, (new \App\Models\Autor())->findAll(), 'select-multiple'],
+            ['assuntos', 'Assuntos', true, null, (new \App\Models\Assunto())->findAll(), 'select-multiple']
         ];
     }
 
@@ -31,11 +33,6 @@ class LivroController extends BaseController
     protected function prepareData(): array
     {
         $data = $this->validateFields($this->getFields());
-
-        // Campos opcionais com valores padrão
-        $data['Edicao'] = (int)($_POST['edicao'] ?? 1);
-        $data['Valor'] = $this->formatCurrencyToDb($_POST['valor'] ?? '0');
-
         return $data;
     }
 
@@ -50,14 +47,5 @@ class LivroController extends BaseController
         
         $this->model->setAutores($id, $autores);
         $this->model->setAssuntos($id, $assuntos);
-    }
-
-    /** Converte valor monetário formatado para float */
-    private function formatCurrencyToDb(string $value): float
-    {
-        // Remove símbolos e separadores de milhar, depois substitui vírgula por ponto
-        $value = str_replace(['R$', ' ', '.'], '', trim($value));
-        $value = str_replace(',', '.', $value);
-        return (float)$value;
     }
 }

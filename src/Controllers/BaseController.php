@@ -101,16 +101,22 @@ abstract class BaseController
             foreach ($fields as $field) {
                 $campo = $field[0];
                 $valorPadrao = $field[4] ?? null;
-                $multiple = $field[5] ?? true;
-                // Se o valor padrão é um array (relacionamento), carrega IDs selecionados
-                if (is_array($valorPadrao) && !empty($valorPadrao)) {
+                $tipo = $field[5] ?? null;
+                
+                // Se valorPadrao é array e tipo não especificado, assume select-multiple
+                if (is_array($valorPadrao) && $tipo === null) {
+                    $tipo = 'select-multiple';
+                }
+                
+                // Se o tipo é select, carrega IDs selecionados
+                if ($tipo === 'select' || $tipo === 'select-multiple') {
                     $itemId = $item[$primaryKey];
                     // Tenta métodos específicos primeiro (getAutores, getAssuntos)
                     $methodName = 'get' . ucfirst($campo);
                     if (method_exists($this->model, $methodName)) {
                         $selected = $this->model->$methodName($itemId);
-                        // Se não for múltiplo, pega apenas o primeiro valor
-                        if (!$multiple && !empty($selected)) {
+                        // Se for select único, pega apenas o primeiro valor
+                        if ($tipo === 'select' && !empty($selected)) {
                             $selected = [reset($selected)];
                         }
                         $data['item' . ucfirst($campo)] = $selected;
@@ -198,7 +204,7 @@ abstract class BaseController
     }
 
     /** Valida campos do formulário e retorna array para banco
-     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength, valor_padrao]
+     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength, valor_padrao, tipo]
      * @return array Dados validados prontos para inserção
      */
     protected function validateFields(array $fields): array
@@ -213,9 +219,28 @@ abstract class BaseController
             $obrigatorio = $field[2] ?? false;
             $maxLength = $field[3] ?? null;
             $valorPadrao = $field[4] ?? null;
+            $tipo = $field[5] ?? null;
             
-            // Ignora campos de relacionamento (arrays)
-            if (is_array($valorPadrao)) continue;
+            // Se valorPadrao é array e tipo não especificado, assume select-multiple
+            if (is_array($valorPadrao) && $tipo === null) {
+                $tipo = 'select-multiple';
+            }
+            
+            // Valida campos de relacionamento (select)
+            if ($tipo === 'select' || $tipo === 'select-multiple') {
+                // Valida campo obrigatório para relacionamentos
+                if ($obrigatorio) {
+                    $value = $_POST[$campo] ?? [];
+                    // Se for select único, pode vir como string
+                    if ($tipo === 'select' && !is_array($value)) {
+                        $value = $value ? [$value] : [];
+                    }
+                    if (empty($value)) {
+                        $errors[] = $nomeAmigavel;
+                    }
+                }
+                continue; // Não adiciona ao $data, será tratado no afterSave
+            }
             
             // Converte campo para formato do banco (PascalCase)
             $dbKey = str_replace('_', '', ucwords($campo, '_'));
@@ -223,15 +248,42 @@ abstract class BaseController
             // Ignora campos que são chave primária
             if ($primaryKey && $dbKey === $primaryKey) continue;
             
-            $value = trim($_POST[$campo] ?? '');
-            
-            // Valida campo obrigatório
-            if ($obrigatorio && empty($value)) {
-                $errors[] = $nomeAmigavel;
+            // Se tipo não especificado, assume text
+            if ($tipo === null) {
+                $tipo = 'text';
             }
             
-            // Valida e trunca tamanho máximo
-            if ($maxLength !== null && mb_strlen($value) > $maxLength) {
+            $value = trim($_POST[$campo] ?? '');
+            
+            // Processa valor conforme tipo
+            if ($tipo === 'number') {
+                $value = $value ? (int)$value : ($valorPadrao ?? 0);
+            } elseif ($tipo === 'currency') {
+                // Remove símbolos e separadores de milhar, depois substitui vírgula por ponto
+                $value = str_replace(['R$', ' ', '.'], '', $value);
+                $value = str_replace(',', '.', $value);
+                $value = $value ? (float)$value : (float)($valorPadrao ?? 0);
+            } else {
+                $value = $value ?: ($valorPadrao ?? '');
+            }
+            
+            // Valida campo obrigatório
+            if ($obrigatorio) {
+                if ($tipo === 'number' || $tipo === 'currency') {
+                    // Para number/currency, considera vazio apenas se não foi informado e não tem valor padrão
+                    $postValue = trim($_POST[$campo] ?? '');
+                    if (empty($postValue) && ($valorPadrao === null || $valorPadrao === '')) {
+                        $errors[] = $nomeAmigavel;
+                    }
+                } else {
+                    if (empty($value)) {
+                        $errors[] = $nomeAmigavel;
+                    }
+                }
+            }
+            
+            // Valida e trunca tamanho máximo (apenas para texto)
+            if ($tipo === 'text' && $maxLength !== null && mb_strlen($value) > $maxLength) {
                 $errors[] = "{$nomeAmigavel} excede o tamanho máximo de {$maxLength} caracteres.";
                 $value = mb_substr($value, 0, $maxLength);
             }
@@ -251,7 +303,9 @@ abstract class BaseController
     }
 
     /** Retorna definição dos campos do formulário
-     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength, valor_padrao, multiple]
+     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength, valor_padrao, tipo]
+     * Tipos: text (padrão), number, currency, year, select (único), select-multiple (múltiplo)
+     * Se valor_padrao for array e tipo não especificado, assume select-multiple
      */
     protected function getFields(): array
     {

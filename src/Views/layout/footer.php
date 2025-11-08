@@ -15,6 +15,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-mask-plugin@1.14.16/dist/jquery.mask.min.js"></script>
+    <script src="<?= \App\Config\App::$baseUrl ?>/js/form.js"></script>
     
     <script>
         $(document).ready(function() {

@@ -14,16 +14,41 @@
                         $obrigatorio = $field[2] ?? false;
                         $maxLength = $field[3] ?? null;
                         $valorPadrao = $field[4] ?? null;
-                        $multiple = $field[5] ?? true; // Padrão: true quando é array
+                        $tipo = $field[5] ?? null;
                         $dbKey = str_replace('_', '', ucwords($campo, '_'));
                         // Ignora campos que são chave primária
                         if ($primaryKey && $dbKey === $primaryKey) continue;
-                        $value = $item[$dbKey] ?? ($valorPadrao ?? '');
-                        $isArray = is_array($valorPadrao) && !empty($valorPadrao);
+                        
+                        // Se valorPadrao é array e tipo não especificado, assume select-multiple
+                        if (is_array($valorPadrao) && $tipo === null) {
+                            $tipo = 'select-multiple';
+                        }
+                        // Se tipo não especificado, assume text
+                        if ($tipo === null) {
+                            $tipo = 'text';
+                        }
+                        
+                        // Determina se é múltiplo baseado no tipo
+                        $multiple = ($tipo === 'select-multiple');
+                        
+                        // Formata valor conforme tipo
+                        if ($tipo === 'select' || $tipo === 'select-multiple') {
+                            $value = '';
+                        } elseif ($tipo === 'number') {
+                            $value = $item[$dbKey] ?? ($valorPadrao ?? '');
+                        } elseif ($tipo === 'currency') {
+                            if ($item) {
+                                $value = number_format((float)($item[$dbKey] ?? 0), 2, ',', '.');
+                            } else {
+                                $value = $valorPadrao ?? '0,00';
+                            }
+                        } else {
+                            $value = $item[$dbKey] ?? ($valorPadrao ?? '');
+                        }
                     ?>
                         <div class="mb-3">
                             <label for="<?= $campo ?>" class="form-label"><?= $nomeAmigavel ?><?= $obrigatorio ? ' *' : '' ?></label>
-                            <?php if ($isArray): 
+                            <?php if ($tipo === 'select' || $tipo === 'select-multiple'): 
                                 // Detecta chave primária e campo de label do primeiro item
                                 $firstItem = reset($valorPadrao);
                                 $itemKey = null;
@@ -47,7 +72,7 @@
                                 if ($item) {
                                     $relacaoKey = 'item' . ucfirst($campo); // itemAutores, itemAssuntos
                                     $selectedValues = $$relacaoKey ?? [];
-                                    // Se não for múltiplo, pega apenas o primeiro valor como string
+                                    // Se for select único, pega apenas o primeiro valor como string
                                     if (!$multiple && !empty($selectedValues)) {
                                         $selectedValues = reset($selectedValues);
                                     }
@@ -70,6 +95,25 @@
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                            <?php elseif ($tipo === 'number'): 
+                                // Calcula valor máximo baseado no maxlength (ex: maxlength=4 -> max=9999)
+                                $maxValue = $maxLength ? (int)str_repeat('9', $maxLength) : null;
+                            ?>
+                                <input type="number" class="form-control" id="<?= $campo ?>" name="<?= $campo ?>" 
+                                       value="<?= htmlspecialchars($value) ?>" 
+                                       <?= $obrigatorio ? 'required' : '' ?> 
+                                       min="1" 
+                                       <?= $maxValue ? 'max="' . $maxValue . '"' : '' ?>
+                                       data-maxlength="<?= $maxLength ?: '' ?>">
+                            <?php elseif ($tipo === 'currency'): ?>
+                                <input type="text" class="form-control mask-currency" id="<?= $campo ?>" name="<?= $campo ?>" 
+                                       value="<?= htmlspecialchars($value) ?>" 
+                                       <?= $obrigatorio ? 'required' : '' ?>>
+                            <?php elseif ($tipo === 'year'): ?>
+                                <input type="text" class="form-control mask-year" id="<?= $campo ?>" name="<?= $campo ?>" 
+                                       value="<?= htmlspecialchars($value) ?>" 
+                                       <?= $obrigatorio ? 'required' : '' ?>
+                                       <?= $maxLength ? 'maxlength="' . $maxLength . '"' : '' ?>>
                             <?php else: ?>
                                 <input type="text" class="form-control" id="<?= $campo ?>" name="<?= $campo ?>" 
                                        value="<?= htmlspecialchars($value) ?>" 
