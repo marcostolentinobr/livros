@@ -8,6 +8,8 @@ use App\Services\RelatorioPDF;
 /** Controller para gerenciar relatórios */
 class RelatorioController extends BaseController
 {
+    protected $pluralName = 'relatórios';
+
     /** Exibe página de relatórios agrupados por autor */
     public function index(): void
     {
