@@ -15,6 +15,7 @@ class RelatorioController extends BaseController
 
     public function __construct()
     {
+        parent::__construct();
         $this->relatorioService = new RelatorioService();
     }
 

@@ -8,13 +8,14 @@ namespace App\Controllers;
  */
 class LivroController extends BaseController
 {
+
     /**
      * Lista todos os livros com suas relações (autores e assuntos)
      * Sobrescreve o método padrão para incluir dados relacionados
      */
     public function index(): void
     {
-        $livros = $this->getModel()->findAllWithRelations();
+        $livros = $this->model->findAllWithRelations();
         
         $this->render('livro/index', [
             'livros' => $livros
@@ -46,11 +47,11 @@ class LivroController extends BaseController
             $livroId = $livro['Codl'];
             
             // Extrai apenas os IDs dos autores associados
-            $autoresAssociados = $this->getModel()->getAutores($livroId);
+            $autoresAssociados = $this->model->getAutores($livroId);
             $data['livroAutores'] = array_column($autoresAssociados, 'CodAu');
             
             // Extrai apenas os IDs dos assuntos associados
-            $assuntosAssociados = $this->getModel()->getAssuntos($livroId);
+            $assuntosAssociados = $this->model->getAssuntos($livroId);
             $data['livroAssuntos'] = array_column($assuntosAssociados, 'codAs');
         }
 
@@ -103,11 +104,11 @@ class LivroController extends BaseController
     {
         // Associa os autores selecionados ao livro
         $autores = $_POST['autores'] ?? [];
-        $this->getModel()->setAutores($id, $autores);
+        $this->model->setAutores($id, $autores);
         
         // Associa os assuntos selecionados ao livro
         $assuntos = $_POST['assuntos'] ?? [];
-        $this->getModel()->setAssuntos($id, $assuntos);
+        $this->model->setAssuntos($id, $assuntos);
     }
 
     /**

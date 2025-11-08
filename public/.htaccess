@@ -1,13 +1,19 @@
-# Habilitar o módulo de reescrita de URL do Apache
+# ============================================
+# REGRAS DE REESCRITA DE URL (Apache)
+# ============================================
+# Transforma URLs amigáveis em chamadas para index.php
+# Exemplo: /livro/edit/3 -> index.php?route=livro/edit/3
+
+# Habilitar o módulo de reescrita de URL
 RewriteEngine On
 
-# Se a requisição não for um arquivo existente (ex: CSS, JS, imagens)
+# Se a requisição NÃO for um arquivo existente (ex: CSS, JS, imagens)
 RewriteCond %{REQUEST_FILENAME} !-f
 
-# E se a requisição não for um diretório existente
+# E se a requisição NÃO for um diretório existente
 RewriteCond %{REQUEST_FILENAME} !-d
 
-# Redirecionar todas as requisições para index.php passando a rota como parâmetro
-# QSA = Query String Append (preserva parâmetros da URL original)
-# L = Last (para a execução de outras regras)
+# Redirecionar todas as requisições para index.php
+# QSA = Query String Append (preserva parâmetros ?id=123 da URL original)
+# L = Last (para a execução de outras regras após esta)
 RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]

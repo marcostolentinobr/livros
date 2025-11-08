@@ -9,6 +9,13 @@ namespace App\Controllers;
 class AutorController extends BaseController
 {
     /**
+     * Nome plural da entidade
+     * 
+     * @var string
+     */
+    protected string $pluralName = 'autores';
+
+    /**
      * Prepara e valida os dados recebidos do formulário
      * 
      * @return array Dados validados e formatados para o banco de dados

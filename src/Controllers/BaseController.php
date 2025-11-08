@@ -11,35 +11,71 @@ use App\Config\App;
 abstract class BaseController
 {
     /**
+     * Nome da entidade (ex: "Autor", "Livro")
+     * Definido automaticamente no construtor
+     * 
+     * @var string
+     */
+    protected string $entityName;
+
+    /**
+     * Nome plural da entidade
+     * Define o nome plural usado nas views de listagem
+     * Se não definido pelo controller filho, usa o padrão: nome da entidade + "s"
+     * Sempre terá um valor após o construtor
+     * 
+     * Exemplo de uso em controllers filhos:
+     * protected string $pluralName = 'autores';
+     * 
+     * @var string
+     */
+    protected string $pluralName;
+
+    /**
+     * Nome da view em minúsculas
+     * Definido automaticamente no construtor
+     * 
+     * @var string
+     */
+    protected string $viewName;
+
+    /**
      * Instância do model associado ao controller
-     * Carregado automaticamente quando necessário
+     * Carregado automaticamente no construtor se o model existir
+     * 
+     * @var object|null
      */
     protected ?object $model = null;
 
     /**
-     * Obtém a instância do model associado ao controller
-     * Cria automaticamente baseado no nome do controller
-     * 
-     * @return object Instância do model
-     * @throws \RuntimeException Se o model não for encontrado
+     * Construtor
+     * Define automaticamente o nome da entidade, view, plural e model baseado no nome do controller
      */
-    protected function getModel(): object
+    public function __construct()
     {
-        if ($this->model === null) {
-            // Extrai o nome do model a partir do nome do controller
-            // Ex: AutorController -> Autor
-            $modelName = str_replace('Controller', '', basename(str_replace('\\', '/', get_class($this))));
-            $modelClass = "App\\Models\\{$modelName}";
-            
-            if (!class_exists($modelClass)) {
-                throw new \RuntimeException("Model '{$modelClass}' não encontrado.", 500);
-            }
-            
-            $this->model = new $modelClass();
+        $this->entityName = $this->calculateEntityName();
+        $this->viewName = strtolower($this->entityName);
+        
+        // Define pluralName se não foi definido pelo controller filho
+        if (!isset($this->pluralName)) {
+            $this->pluralName = $this->viewName . 's';
         }
         
-        return $this->model;
+        // Carrega o model automaticamente se existir
+        $modelClass = "App\\Models\\{$this->entityName}";
+        $this->model = class_exists($modelClass) ? new $modelClass() : null;
     }
+
+    /**
+     * Calcula o nome da entidade baseado no nome do controller
+     * 
+     * @return string Nome da entidade (ex: "Autor", "Livro")
+     */
+    private function calculateEntityName(): string
+    {
+        return str_replace('Controller', '', basename(str_replace('\\', '/', get_class($this))));
+    }
+
 
     /**
      * Lista todos os registros da entidade
@@ -47,31 +83,9 @@ abstract class BaseController
      */
     public function index(): void
     {
-        $viewName = strtolower($this->getEntityName());
-        $items = $this->getModel()->findAll();
-        
-        $this->render("{$viewName}/index", [
-            $this->getPluralName() => $items
+        $this->render("{$this->viewName}/index", [
+            $this->pluralName => $this->model->findAll()
         ]);
-    }
-
-    /**
-     * Retorna o nome plural da entidade
-     * 
-     * @return string Nome plural (ex: "autores", "assuntos", "livros")
-     */
-    protected function getPluralName(): string
-    {
-        $entityName = strtolower($this->getEntityName());
-        
-        // Mapeamento de plurais irregulares
-        $plurals = [
-            'autor' => 'autores',
-            'assunto' => 'assuntos',
-            'livro' => 'livros'
-        ];
-        
-        return $plurals[$entityName] ?? $entityName . 's';
     }
 
     /**
@@ -82,21 +96,13 @@ abstract class BaseController
      */
     public function form(?int $id = null): void
     {
-        $item = null;
+        $item = $id !== null ? $this->model->find($id) : null;
         
-        // Se foi informado um ID, busca o registro
-        if ($id !== null) {
-            $item = $this->getModel()->find($id);
-            
-            if (!$item) {
-                throw new \RuntimeException("{$this->getEntityName()} não encontrado.", 404);
-            }
+        if ($id !== null && !$item) {
+            throw new \RuntimeException("{$this->entityName} não encontrado.", 404);
         }
         
-        // Define a ação: 'store' para criar, 'update' para editar
-        $action = $id !== null ? 'update' : 'store';
-        
-        $this->renderForm($item, $action);
+        $this->renderForm($item, $id !== null ? 'update' : 'store');
     }
 
     /**
@@ -108,22 +114,10 @@ abstract class BaseController
      */
     protected function renderForm(?array $item, string $action): void
     {
-        $viewName = strtolower($this->getEntityName());
-        
-        $this->render("{$viewName}/form", [
-            $viewName => $item,
+        $this->render("{$this->viewName}/form", [
+            $this->viewName => $item,
             'action' => $action
         ]);
-    }
-
-    /**
-     * Obtém o nome da entidade baseado no nome do controller
-     * 
-     * @return string Nome da entidade (ex: "Autor", "Livro")
-     */
-    protected function getEntityName(): string
-    {
-        return str_replace('Controller', '', basename(str_replace('\\', '/', get_class($this))));
     }
 
     /**
@@ -133,9 +127,13 @@ abstract class BaseController
      */
     public function store(): void
     {
+        // Prepara os dados recebidos do formulário
         $data = $this->prepareData();
-        $id = $this->getModel()->create($data);
         
+        // Cria o novo registro no banco de dados
+        $id = $this->model->create($data);
+        
+        // Responde com sucesso
         $this->responderSucesso($id, 'cadastrado');
     }
 
@@ -148,13 +146,15 @@ abstract class BaseController
     public function update(int $id): void
     {
         // Verifica se o registro existe
-        if (!$this->getModel()->find($id)) {
-            throw new \RuntimeException("{$this->getEntityName()} não encontrado.", 404);
+        if (!$this->model->find($id)) {
+            throw new \RuntimeException("{$this->entityName} não encontrado.", 404);
         }
         
+        // Prepara e atualiza os dados
         $data = $this->prepareData();
-        $this->getModel()->update($id, $data);
+        $this->model->update($id, $data);
         
+        // Responde com sucesso
         $this->responderSucesso($id, 'atualizado');
     }
 
@@ -172,7 +172,7 @@ abstract class BaseController
         // Retorna resposta JSON de sucesso
         $this->json([
             'success' => true,
-            'message' => "{$this->getEntityName()} {$acao} com sucesso!",
+            'message' => "{$this->entityName} {$acao} com sucesso!",
             'id' => $id
         ]);
     }
@@ -197,13 +197,13 @@ abstract class BaseController
     public function delete(int $id): void
     {
         // Verifica se o registro existe
-        if (!$this->getModel()->find($id)) {
-            throw new \RuntimeException("{$this->getEntityName()} não encontrado.", 404);
+        if (!$this->model->find($id)) {
+            throw new \RuntimeException("{$this->entityName} não encontrado.", 404);
         }
         
         // Tenta excluir o registro
-        if (!$this->getModel()->delete($id)) {
-            throw new \RuntimeException("Erro ao excluir {$this->getEntityName()}.", 500);
+        if (!$this->model->delete($id)) {
+            throw new \RuntimeException("Erro ao excluir {$this->entityName}.", 500);
         }
         
         $this->responderSucesso($id, 'excluído');
