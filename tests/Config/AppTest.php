@@ -15,29 +15,28 @@ class AppTest extends TestCase
         $this->assertTrue(true);
     }
 
-    /** Testa se o método url gera URLs corretas */
-    public function testUrl(): void
+    /** Testa se o atributo baseUrl é carregado corretamente */
+    public function testBaseUrl(): void
     {
         App::init();
-        $url = App::url('livro');
+        $this->assertNotEmpty(App::$baseUrl);
+    }
+
+    /** Testa concatenação de URL com rota */
+    public function testUrlConcatenation(): void
+    {
+        App::init();
+        $url = App::$baseUrl . '/' . trim('livro', '/');
         $this->assertStringContainsString('livro', $url);
     }
 
-    /** Testa se o método url normaliza barras */
+    /** Testa se a concatenação normaliza barras */
     public function testUrlWithSlash(): void
     {
         App::init();
-        $url1 = App::url('livro');
-        $url2 = App::url('/livro/');
+        $url1 = App::$baseUrl . '/' . trim('livro', '/');
+        $url2 = App::$baseUrl . '/' . trim('/livro/', '/');
         $this->assertEquals($url1, $url2);
-    }
-
-    /** Testa se o método url retorna a URL base quando chamado sem parâmetros */
-    public function testUrlEmpty(): void
-    {
-        App::init();
-        $url = App::url();
-        $this->assertNotEmpty($url);
     }
 }
 

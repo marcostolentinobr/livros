@@ -10,6 +10,13 @@ docker-compose up -d
 
 Acesse: http://localhost:8888
 
+## Configuração
+
+Configure as variáveis de ambiente no arquivo `.env`:
+
+- `BASE_URL`: URL base da aplicação (ex: `http://localhost:8888`)
+- `DEFAULT_MODULE`: Módulo principal exibido na raiz (padrão: `livro`)
+
 ## Testes
 
 ```bash

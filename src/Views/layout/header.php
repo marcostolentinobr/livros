@@ -45,7 +45,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="<?= $url('home') ?>">
+            <a class="navbar-brand" href="<?= $url('livro') ?>">
                 <i class="bi bi-book"></i> Sistema de Livros
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -53,7 +53,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="<?= $url('home') ?>"><i class="bi bi-house"></i> Início</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= $url('livro') ?>"><i class="bi bi-book"></i> Livros</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= $url('autor') ?>"><i class="bi bi-person"></i> Autores</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= $url('assunto') ?>"><i class="bi bi-tag"></i> Assuntos</a></li>

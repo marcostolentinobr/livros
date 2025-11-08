@@ -149,7 +149,7 @@ abstract class BaseController
     protected function render(string $view, array $data = []): void
     {
         extract($data);
-        $url = fn(string $route = '') => App::url($route);
+        $url = fn(string $route = '') => App::$baseUrl . '/' . trim($route, '/');
         ob_start();
         include __DIR__ . '/../Views/layout/header.php';
         include __DIR__ . "/../Views/{$view}.php";

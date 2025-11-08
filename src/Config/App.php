@@ -5,15 +5,14 @@ namespace App\Config;
 /** Configuração principal da aplicação */
 class App
 {
+    public static string $defaultModule = 'livro';
+    public static string $baseUrl = '';
+
     /** Inicializa aplicação carregando variáveis de ambiente */
     public static function init(): void
     {
         Env::load();
-    }
-
-    /** Gera URL completa para uma rota */
-    public static function url(string $route = ''): string
-    {
-        return Env::get('BASE_URL') . '/' . trim($route, '/');
+        self::$defaultModule = Env::getOptional('DEFAULT_MODULE', 'livro');
+        self::$baseUrl = Env::get('BASE_URL');
     }
 }

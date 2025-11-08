@@ -5,7 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 \App\Config\App::init();
 
 // Extrai partes da rota (ex: /livro/form/1 -> ['livro', 'form', '1'])
-$parts = explode('/', $_GET['route'] ?? 'home');
+$parts = explode('/', $_GET['route'] ?? \App\Config\App::$defaultModule);
 
 // Mapeia automaticamente controllers para rotas
 $controllers = array_reduce(
@@ -25,7 +25,7 @@ $controllers = array_reduce(
 
 try {
     // Define rota, ação e ID a partir da URL
-    $route = $parts[0] ?: 'home';  // Primeira parte ou 'home' por padrão
+    $route = $parts[0] ?: \App\Config\App::$defaultModule;  // Primeira parte ou módulo padrão do .env
     $action = $parts[1] ?? 'index';  // Segunda parte ou 'index' por padrão
     $id = isset($parts[2]) ? (int)$parts[2] : null;  // Terceira parte como ID
     
