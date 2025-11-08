@@ -6,8 +6,8 @@ use App\Database\Connection;
 use PDO;
 
 /**
- * Service para geração de relatórios
- * Gerencia consultas e processamento de dados para relatórios do sistema
+ * Service para buscar dados dos relatórios
+ * Utiliza a view vw_livros_por_autor do banco de dados
  */
 class RelatorioService
 {
@@ -20,9 +20,10 @@ class RelatorioService
 
     /**
      * Busca livros agrupados por autor
-     * Utiliza a view vw_livros_por_autor do banco de dados
+     * Utiliza a view vw_livros_por_autor que já faz o agrupamento
+     * e inclui informações de assuntos e coautores
      * 
-     * @return array Lista de livros com informações do autor, ordenados por nome do autor e título
+     * @return array Lista de livros ordenados por nome do autor e título
      */
     public function getLivrosPorAutor(): array
     {

@@ -3,11 +3,12 @@
     "description": "Sistema de cadastro de livros",
     "type": "project",
     "require": {
-        "php": ">=8.2",
-        "ext-pdo": "*"
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "tecnickcom/tcpdf": "^6.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^9.0"
     },
     "autoload": {
         "psr-4": {
