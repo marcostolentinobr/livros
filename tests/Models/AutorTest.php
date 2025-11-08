@@ -5,7 +5,6 @@ namespace Tests\Models;
 use Tests\TestCase;
 use App\Models\Autor;
 
-/** Testes para a classe Autor */
 class AutorTest extends TestCase
 {
     private Autor $model;
@@ -16,7 +15,6 @@ class AutorTest extends TestCase
         $this->model = new Autor();
     }
 
-    /** Testa método find */
     public function testFind(): void
     {
         $id = $this->model->create(['Nome' => 'Autor para Find']);
@@ -26,14 +24,12 @@ class AutorTest extends TestCase
         $this->assertEquals($id, $autor['CodAu']);
     }
 
-    /** Testa método find retorna null quando registro não existe */
     public function testFindReturnsNullWhenNotFound(): void
     {
         $autor = $this->model->find(99999);
         $this->assertNull($autor);
     }
 
-    /** Testa criação de autor */
     public function testCreate(): void
     {
         $id = $this->model->create(['Nome' => 'Autor de Teste']);
@@ -43,7 +39,6 @@ class AutorTest extends TestCase
         $this->assertEquals('Autor de Teste', $autor['Nome']);
     }
 
-    /** Testa busca de todos os autores */
     public function testFindAll(): void
     {
         $this->model->create(['Nome' => 'Autor 1']);
@@ -53,7 +48,6 @@ class AutorTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($autores));
     }
 
-    /** Testa atualização de autor */
     public function testUpdate(): void
     {
         $id = $this->model->create(['Nome' => 'Original']);
@@ -63,33 +57,11 @@ class AutorTest extends TestCase
         $this->assertEquals('Atualizado', $autor['Nome']);
     }
 
-    /** Testa exclusão de autor */
     public function testDelete(): void
     {
         $id = $this->model->create(['Nome' => 'Para Excluir']);
         $this->model->delete($id);
         
         $this->assertNull($this->model->find($id));
-    }
-
-    /** Testa associação de autor com livro */
-    public function testGetAutoresFromLivro(): void
-    {
-        $autorId = $this->model->create(['Nome' => 'Autor para Livro']);
-        $livroModel = new \App\Models\Livro();
-        $livroId = $livroModel->create([
-            'Titulo' => 'Livro Teste',
-            'Editora' => 'Editora',
-            'Edicao' => 1,
-            'AnoPublicacao' => '2024',
-            'Valor' => 50.00
-        ]);
-        
-        $livroModel->setAutores($livroId, [$autorId]);
-        
-        $autores = $livroModel->getAutores($livroId);
-        $this->assertIsArray($autores);
-        $this->assertGreaterThanOrEqual(1, count($autores));
-        $this->assertContains($autorId, $autores);
     }
 }

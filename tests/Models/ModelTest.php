@@ -5,7 +5,6 @@ namespace Tests\Models;
 use Tests\TestCase;
 use App\Models\Autor;
 
-/** Testes para a classe base Model */
 class ModelTest extends TestCase
 {
     private Autor $model;
@@ -16,7 +15,11 @@ class ModelTest extends TestCase
         $this->model = new Autor();
     }
 
-    /** Testa método find */
+    public function testGetPrimaryKey(): void
+    {
+        $this->assertEquals('CodAu', $this->model->getPrimaryKey());
+    }
+
     public function testFind(): void
     {
         $id = $this->model->create(['Nome' => 'Autor para Find']);
@@ -26,21 +29,18 @@ class ModelTest extends TestCase
         $this->assertEquals($id, $autor['CodAu']);
     }
 
-    /** Testa método find retorna null quando registro não existe */
     public function testFindReturnsNullWhenNotFound(): void
     {
         $autor = $this->model->find(99999);
         $this->assertNull($autor);
     }
 
-    /** Testa método create */
     public function testCreate(): void
     {
         $id = $this->model->create(['Nome' => 'Novo Autor']);
         $this->assertGreaterThan(0, $id);
     }
 
-    /** Testa método update */
     public function testUpdate(): void
     {
         $id = $this->model->create(['Nome' => 'Original']);
@@ -51,7 +51,6 @@ class ModelTest extends TestCase
         $this->assertEquals('Atualizado', $autor['Nome']);
     }
 
-    /** Testa método delete */
     public function testDelete(): void
     {
         $id = $this->model->create(['Nome' => 'Para Excluir']);
@@ -61,14 +60,12 @@ class ModelTest extends TestCase
         $this->assertNull($this->model->find($id));
     }
 
-    /** Testa método delete retorna false quando registro não existe */
     public function testDeleteReturnsFalseWhenNotFound(): void
     {
         $result = $this->model->delete(99999);
         $this->assertFalse($result);
     }
 
-    /** Testa busca de todos os registros */
     public function testFindAll(): void
     {
         $this->model->create(['Nome' => 'Autor 1']);
@@ -79,7 +76,6 @@ class ModelTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($autores));
     }
 
-    /** Testa método getRelacao */
     public function testGetRelacao(): void
     {
         $livroModel = new \App\Models\Livro();
@@ -99,7 +95,6 @@ class ModelTest extends TestCase
         $this->assertContains($autorId, $autores);
     }
 
-    /** Testa método setRelacao */
     public function testSetRelacao(): void
     {
         $livroModel = new \App\Models\Livro();
@@ -119,7 +114,6 @@ class ModelTest extends TestCase
         $this->assertEquals($autorId, $autores[0]);
     }
 
-    /** Testa setRelacao com array vazio */
     public function testSetRelacaoWithEmptyArray(): void
     {
         $livroModel = new \App\Models\Livro();

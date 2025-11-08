@@ -6,7 +6,6 @@ use Tests\TestCase;
 use App\Controllers\AutorController;
 use ReflectionMethod;
 
-/** Testes para o AutorController */
 class AutorControllerTest extends TestCase
 {
     private AutorController $controller;
@@ -17,7 +16,6 @@ class AutorControllerTest extends TestCase
         $this->controller = new AutorController();
     }
 
-    /** Testa se o prepareData converte corretamente os dados do POST */
     public function testPrepareData(): void
     {
         $_POST['nome'] = 'Autor Teste';
@@ -29,7 +27,6 @@ class AutorControllerTest extends TestCase
         $this->assertEquals(['Nome' => 'Autor Teste'], $result);
     }
 
-    /** Testa se o prepareData lança exceção quando o nome está vazio */
     public function testPrepareDataThrowsExceptionWhenEmpty(): void
     {
         $_POST['nome'] = '';
@@ -41,7 +38,6 @@ class AutorControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
-    /** Testa se o prepareData remove espaços em branco */
     public function testPrepareDataTrimsWhitespace(): void
     {
         $_POST['nome'] = '  Autor com Espaços  ';
@@ -51,6 +47,16 @@ class AutorControllerTest extends TestCase
         $result = $method->invoke($this->controller);
         
         $this->assertEquals(['Nome' => 'Autor com Espaços'], $result);
+    }
+
+    public function testGetFields(): void
+    {
+        $method = new ReflectionMethod($this->controller, 'getFields');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->controller);
+        
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
     }
 }
 

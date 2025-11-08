@@ -6,13 +6,10 @@ use Tests\TestCase;
 use App\Services\RelatorioPDF;
 use ReflectionMethod;
 
-/** Testes para o RelatorioPDF */
 class RelatorioPDFTest extends TestCase
 {
-    /** Testa se a classe RelatorioPDF pode ser instanciada */
     public function testCanInstantiate(): void
     {
-        // Suprime warnings de constantes já definidas (TCPDF)
         $oldErrorReporting = error_reporting(E_ALL & ~E_WARNING);
         
         try {
@@ -23,7 +20,6 @@ class RelatorioPDFTest extends TestCase
         }
     }
 
-    /** Testa se o método gerarRelatorio existe e é público */
     public function testGerarRelatorioMethodExists(): void
     {
         $oldErrorReporting = error_reporting(E_ALL & ~E_WARNING);

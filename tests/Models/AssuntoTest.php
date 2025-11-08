@@ -5,7 +5,6 @@ namespace Tests\Models;
 use Tests\TestCase;
 use App\Models\Assunto;
 
-/** Testes para a classe Assunto */
 class AssuntoTest extends TestCase
 {
     private Assunto $model;
@@ -16,7 +15,6 @@ class AssuntoTest extends TestCase
         $this->model = new Assunto();
     }
 
-    /** Testa método find */
     public function testFind(): void
     {
         $id = $this->model->create(['Descricao' => 'Assunto para Find']);
@@ -26,14 +24,12 @@ class AssuntoTest extends TestCase
         $this->assertEquals($id, $assunto['codAs']);
     }
 
-    /** Testa método find retorna null quando registro não existe */
     public function testFindReturnsNullWhenNotFound(): void
     {
         $assunto = $this->model->find(99999);
         $this->assertNull($assunto);
     }
 
-    /** Testa criação de assunto */
     public function testCreate(): void
     {
         $id = $this->model->create(['Descricao' => 'Romance']);
@@ -43,7 +39,6 @@ class AssuntoTest extends TestCase
         $this->assertEquals('Romance', $assunto['Descricao']);
     }
 
-    /** Testa busca de todos os assuntos */
     public function testFindAll(): void
     {
         $this->model->create(['Descricao' => 'Ficção']);
@@ -53,7 +48,6 @@ class AssuntoTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($assuntos));
     }
 
-    /** Testa atualização de assunto */
     public function testUpdate(): void
     {
         $id = $this->model->create(['Descricao' => 'Original']);
@@ -63,33 +57,11 @@ class AssuntoTest extends TestCase
         $this->assertEquals('Atualizado', $assunto['Descricao']);
     }
 
-    /** Testa exclusão de assunto */
     public function testDelete(): void
     {
         $id = $this->model->create(['Descricao' => 'Para Excluir']);
         $this->model->delete($id);
         
         $this->assertNull($this->model->find($id));
-    }
-
-    /** Testa associação de assunto com livro */
-    public function testGetAssuntosFromLivro(): void
-    {
-        $assuntoId = $this->model->create(['Descricao' => 'Assunto para Livro']);
-        $livroModel = new \App\Models\Livro();
-        $livroId = $livroModel->create([
-            'Titulo' => 'Livro Teste',
-            'Editora' => 'Editora',
-            'Edicao' => 1,
-            'AnoPublicacao' => '2024',
-            'Valor' => 50.00
-        ]);
-        
-        $livroModel->setAssuntos($livroId, [$assuntoId]);
-        
-        $assuntos = $livroModel->getAssuntos($livroId);
-        $this->assertIsArray($assuntos);
-        $this->assertGreaterThanOrEqual(1, count($assuntos));
-        $this->assertContains($assuntoId, $assuntos);
     }
 }

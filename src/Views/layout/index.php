@@ -1,4 +1,3 @@
-<!-- Página de listagem genérica -->
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -19,8 +18,7 @@
                                 <?php foreach ($fields as $field): 
                                     $campo = $field[0];
                                     $dbKey = str_replace('_', '', ucwords($campo, '_'));
-                                    
-                                    // Não exibe campos que são chave primária (já exibida como "Código" se showPrimaryKey)
+                                    // Ignora campos que são chave primária
                                     if ($primaryKey && $dbKey === $primaryKey) continue;
                                 ?>
                                     <th><?= $field[1] ?></th>
@@ -30,7 +28,7 @@
                         </thead>
                         <tbody>
                             <?php 
-                            // Conta campos que serão exibidos (excluindo PK)
+                            // Calcula colspan para mensagem vazia
                             $displayCount = 0;
                             foreach ($fields as $field) {
                                 $campo = $field[0];
@@ -56,10 +54,8 @@
                                         <?php foreach ($fields as $field): 
                                             $campo = $field[0];
                                             $dbKey = str_replace('_', '', ucwords($campo, '_'));
-                                            
-                                            // Não exibe campos que são chave primária (já exibida como "Código" se showPrimaryKey)
+                                            // Ignora campos que são chave primária
                                             if ($primaryKey && $dbKey === $primaryKey) continue;
-                                            
                                             $value = $item[$dbKey] ?? '';
                                         ?>
                                             <td><?= htmlspecialchars($value) ?></td>

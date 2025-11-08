@@ -8,7 +8,6 @@ use App\Models\Autor;
 use App\Models\Assunto;
 use ReflectionMethod;
 
-/** Testes para o LivroController */
 class LivroControllerTest extends TestCase
 {
     private LivroController $controller;
@@ -19,7 +18,6 @@ class LivroControllerTest extends TestCase
         $this->controller = new LivroController();
     }
 
-    /** Testa se o prepareData converte corretamente os dados do POST */
     public function testPrepareData(): void
     {
         $_POST['titulo'] = 'Livro Teste';
@@ -39,7 +37,6 @@ class LivroControllerTest extends TestCase
         $this->assertEquals(50.0, $result['Valor']);
     }
 
-    /** Testa se o prepareData lança exceção quando o título está vazio */
     public function testPrepareDataThrowsExceptionWhenTituloEmpty(): void
     {
         $_POST['titulo'] = '';
@@ -53,7 +50,6 @@ class LivroControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
-    /** Testa se o prepareData lança exceção quando a editora está vazia */
     public function testPrepareDataThrowsExceptionWhenEditoraEmpty(): void
     {
         $_POST['titulo'] = 'Título';
@@ -67,7 +63,6 @@ class LivroControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
-    /** Testa se o prepareData lança exceção quando o ano está vazio */
     public function testPrepareDataThrowsExceptionWhenAnoEmpty(): void
     {
         $_POST['titulo'] = 'Título';
@@ -81,7 +76,6 @@ class LivroControllerTest extends TestCase
         $method->invoke($this->controller);
     }
 
-    /** Testa conversão de valores monetários complexos */
     public function testFormatCurrencyToDb(): void
     {
         $_POST['titulo'] = 'Título';
@@ -96,7 +90,6 @@ class LivroControllerTest extends TestCase
         $this->assertEquals(1234.56, $result['Valor']);
     }
 
-    /** Testa se o afterSave associa corretamente autores e assuntos ao livro */
     public function testAfterSave(): void
     {
         $autorModel = new Autor();
@@ -120,11 +113,21 @@ class LivroControllerTest extends TestCase
         $method->setAccessible(true);
         $method->invoke($this->controller, $livroId);
         
-        $autores = $livroModel->getRelacao($livroId, 'Livro_Autor', 'Autor_CodAu');
-        $assuntos = $livroModel->getRelacao($livroId, 'Livro_Assunto', 'Assunto_codAs');
+        $autores = $livroModel->getAutores($livroId);
+        $assuntos = $livroModel->getAssuntos($livroId);
         
         $this->assertCount(1, $autores);
         $this->assertCount(1, $assuntos);
+    }
+
+    public function testGetFields(): void
+    {
+        $method = new ReflectionMethod($this->controller, 'getFields');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->controller);
+        
+        $this->assertIsArray($result);
+        $this->assertCount(3, $result);
     }
 }
 

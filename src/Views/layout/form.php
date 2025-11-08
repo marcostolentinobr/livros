@@ -1,4 +1,3 @@
-<!-- Formulário genérico gerado automaticamente -->
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -14,13 +13,9 @@
                         $nomeAmigavel = $field[1];
                         $obrigatorio = $field[2] ?? false;
                         $maxLength = $field[3] ?? null;
-                        
-                        // Converte campo para formato do banco (PascalCase)
                         $dbKey = str_replace('_', '', ucwords($campo, '_'));
-                        
-                        // Não renderiza campos que são chave primária
+                        // Ignora campos que são chave primária
                         if ($primaryKey && $dbKey === $primaryKey) continue;
-                        
                         $value = $item[$dbKey] ?? '';
                     ?>
                         <div class="mb-3">
@@ -46,7 +41,6 @@
 $(document).ready(function() {
     const itemId = <?= isset($item) && $item ? (int)$item[$primaryKey] : 'null' ?>;
     const url = '<?= $url($viewName . '/' . $action) ?>' + (itemId !== null ? '/' + itemId : '');
-    
     submitForm('#<?= $viewName ?>Form', url, '<?= $url($viewName) ?>');
 });
 </script>

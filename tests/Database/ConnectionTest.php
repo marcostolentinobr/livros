@@ -6,17 +6,14 @@ use Tests\TestCase;
 use App\Database\Connection;
 use PDO;
 
-/** Testes para a classe Connection */
 class ConnectionTest extends TestCase
 {
-    /** Testa se getInstance retorna uma instância de PDO */
     public function testGetInstance(): void
     {
-        $instance1 = Connection::getInstance();
-        $this->assertInstanceOf(PDO::class, $instance1);
+        $instance = Connection::getInstance();
+        $this->assertInstanceOf(PDO::class, $instance);
     }
 
-    /** Testa se getInstance implementa o padrão Singleton */
     public function testGetInstanceIsSingleton(): void
     {
         $instance1 = Connection::getInstance();
@@ -24,7 +21,6 @@ class ConnectionTest extends TestCase
         $this->assertSame($instance1, $instance2);
     }
 
-    /** Testa se a conexão está funcionando corretamente */
     public function testConnectionWorks(): void
     {
         $pdo = Connection::getInstance();
