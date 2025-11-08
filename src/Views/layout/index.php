@@ -13,10 +13,13 @@
                     <table class="table table-striped table-hover">
                         <thead class="table-dark">
                             <tr>
-                                <?php 
-                                // Filtra campos que não são chave primária para exibir na tabela
-                                $displayFields = array_filter($fields, fn($f) => ($f[4] ?? false) !== true);
-                                foreach ($displayFields as $field): 
+                                <th>Código</th>
+                                <?php foreach ($fields as $field): 
+                                    $campo = $field[0];
+                                    $dbKey = str_replace('_', '', ucwords($campo, '_'));
+                                    
+                                    // Não exibe campos que são chave primária (já exibida como "Código")
+                                    if ($primaryKey && $dbKey === $primaryKey) continue;
                                 ?>
                                     <th><?= $field[1] ?></th>
                                 <?php endforeach; ?>
@@ -24,21 +27,34 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <?php 
+                            // Conta campos que serão exibidos (excluindo PK)
+                            $displayCount = 0;
+                            foreach ($fields as $field) {
+                                $campo = $field[0];
+                                $dbKey = str_replace('_', '', ucwords($campo, '_'));
+                                if (!$primaryKey || $dbKey !== $primaryKey) {
+                                    $displayCount++;
+                                }
+                            }
+                            ?>
                             <?php if (empty($items)): ?>
                                 <tr>
-                                    <td colspan="<?= count($displayFields) + 1 ?>" class="text-center">
+                                    <td colspan="<?= $displayCount + 2 ?>" class="text-center">
                                         Nenhum <?= strtolower($entityName) ?> cadastrado.
                                     </td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($items as $item): ?>
                                     <tr>
-                                        <?php foreach ($displayFields as $field): 
+                                        <td><?= htmlspecialchars($item[$primaryKey] ?? '') ?></td>
+                                        <?php foreach ($fields as $field): 
                                             $campo = $field[0];
-                                            // Se o campo já está no formato do banco, usa diretamente; senão converte
-                                            $dbKey = (strpos($campo, '_') === false && ctype_upper(substr($campo, 0, 1))) 
-                                                ? $campo 
-                                                : str_replace('_', '', ucwords($campo, '_'));
+                                            $dbKey = str_replace('_', '', ucwords($campo, '_'));
+                                            
+                                            // Não exibe campos que são chave primária (já exibida como "Código")
+                                            if ($primaryKey && $dbKey === $primaryKey) continue;
+                                            
                                             $value = $item[$dbKey] ?? '';
                                         ?>
                                             <td><?= htmlspecialchars($value) ?></td>

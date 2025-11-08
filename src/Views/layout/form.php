@@ -14,12 +14,13 @@
                         $nomeAmigavel = $field[1];
                         $obrigatorio = $field[2] ?? false;
                         $maxLength = $field[3] ?? null;
-                        $isPrimary = $field[4] ?? false;
+                        
+                        // Converte campo para formato do banco (PascalCase)
+                        $dbKey = str_replace('_', '', ucwords($campo, '_'));
                         
                         // Não renderiza campos que são chave primária
-                        if ($isPrimary) continue;
+                        if ($primaryKey && $dbKey === $primaryKey) continue;
                         
-                        $dbKey = str_replace('_', '', ucwords($campo, '_'));
                         $value = $item[$dbKey] ?? '';
                     ?>
                         <div class="mb-3">

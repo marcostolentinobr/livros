@@ -11,7 +11,6 @@ class AssuntoController extends BaseController
     protected function getFields(): array
     {
         return [
-            ['codAs', 'Código', false, null, true],
             ['descricao', 'Descrição', true, 20]
         ];
     }

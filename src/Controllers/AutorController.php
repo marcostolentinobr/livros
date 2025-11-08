@@ -12,7 +12,6 @@ class AutorController extends BaseController
     protected function getFields(): array
     {
         return [
-            ['CodAu', 'Código', false, null, true],
             ['nome', 'Nome', true, 40]
         ];
     }

@@ -172,26 +172,26 @@ abstract class BaseController
     }
 
     /** Valida campos do formulário e retorna array para banco
-     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength, isPrimaryKey]
+     * @param array $fields Array de [campo, nome_amigavel, obrigatorio, maxlength]
      * @return array Dados validados prontos para inserção
      */
     protected function validateFields(array $fields): array
     {
         $data = [];
         $errors = [];
+        $primaryKey = $this->model ? $this->model->getPrimaryKey() : null;
         
         foreach ($fields as $field) {
             $campo = $field[0];
             $nomeAmigavel = $field[1];
             $obrigatorio = $field[2] ?? false;
             $maxLength = $field[3] ?? null;
-            $isPrimary = $field[4] ?? false;
-            
-            // Ignora campos que são chave primária
-            if ($isPrimary) continue;
             
             // Converte campo para formato do banco (PascalCase)
             $dbKey = str_replace('_', '', ucwords($campo, '_'));
+            
+            // Ignora campos que são chave primária
+            if ($primaryKey && $dbKey === $primaryKey) continue;
             
             $value = trim($_POST[$campo] ?? '');
             
@@ -221,7 +221,7 @@ abstract class BaseController
     }
 
     /** Retorna definição dos campos do formulário
-     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength, isPrimaryKey]
+     * Formato: [campo_post, nome_amigavel, obrigatorio, maxlength]
      */
     protected function getFields(): array
     {
